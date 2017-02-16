@@ -1,0 +1,44 @@
+LOCAL_PATH := $(call my-dir)
+
+#include $(CLEAR_VARS)
+#
+#LOCAL_MODULE := hsbase
+#LOCAL_SRC_FILES := @LIBHSBASENAME@
+#
+#include $(PREBUILT_SHARED_LIBRARY)
+#
+#include $(CLEAR_VARS)
+#
+#LOCAL_MODULE := hsint
+#LOCAL_SRC_FILES := @LIBHSINTEGERNAME@
+#
+#include $(PREBUILT_SHARED_LIBRARY)
+#
+#include $(CLEAR_VARS)
+#
+#LOCAL_MODULE := hsprim
+#LOCAL_SRC_FILES := @LIBHSPRIMNAME@
+#
+#include $(PREBUILT_SHARED_LIBRARY)
+#
+#include $(CLEAR_VARS)
+#
+#LOCAL_MODULE := hsrts
+#LOCAL_SRC_FILES := @LIBHSRTSNAME@
+#
+#include $(PREBUILT_SHARED_LIBRARY)
+#
+#include $(CLEAR_VARS)
+#
+#LOCAL_MODULE := hsffi
+#LOCAL_SRC_FILES := @LIBHSFFINAME@
+#
+#include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := app
+LOCAL_SRC_FILES := @APPLIBNAME@
+#LOCAL_SHARED_LIBRARIES := hsbase hsint hsprim hsrts hsffi
+
+include $(PREBUILT_SHARED_LIBRARY)
