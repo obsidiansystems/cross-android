@@ -38,7 +38,6 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := app
-LOCAL_SRC_FILES := @APPLIBNAME@
-#LOCAL_SHARED_LIBRARIES := hsbase hsint hsprim hsrts hsffi
+LOCAL_SRC_FILES := stub.c
 
-include $(PREBUILT_SHARED_LIBRARY)
+include $(BUILD_SHARED_LIBRARY)

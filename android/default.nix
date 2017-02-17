@@ -51,28 +51,28 @@ in stdenv.mkDerivation {
     cp -r --no-preserve=mode "$src/jni" $out
     # sed -i 's|systems_obsidian_focus|'"${packageJNIName}"'|' "$out/jni/"*"."{c,h}
 
-    GHCLIBPATH=$ghc/lib/$(stripHash $ghc)
-    LIBHSBASEPATH=$(echo $GHCLIBPATH/base-*/libHSbase-*-ghc*.so)
-    LIBHSBASENAME=$(basename $LIBHSBASEPATH)
-    cp --no-preserve=mode $LIBHSBASEPATH $out/jni/$LIBHSBASENAME
-
-    LIBHSINTEGERPATH=$(echo $GHCLIBPATH/integer-simple-*/libHSinteger-simple-*-ghc*.so)
-    LIBHSINTEGERNAME=$(basename $LIBHSINTEGERPATH)
-    cp --no-preserve=mode $LIBHSINTEGERPATH $out/jni/$LIBHSINTEGERNAME
-
-    LIBHSPRIMPATH=$(echo $GHCLIBPATH/ghc-prim-*/libHSghc-prim-*-ghc*.so)
-    LIBHSPRIMNAME=$(basename $LIBHSPRIMPATH)
-    cp --no-preserve=mode $LIBHSPRIMPATH $out/jni/$LIBHSPRIMNAME
-
-    LIBHSRTSPATH=$(echo $GHCLIBPATH/rts/libHSrts_thr-ghc*.so)
-    LIBHSRTSNAME=$(basename $LIBHSRTSPATH)
-    cp --no-preserve=mode $LIBHSRTSPATH $out/jni/$LIBHSRTSNAME
-
-    LIBHSFFIPATH=$(echo $GHCLIBPATH/rts/libffi.so)
-    LIBHSFFINAME=$(basename $LIBHSFFIPATH)
-    cp --no-preserve=mode $LIBHSFFIPATH $out/jni/$LIBHSFFINAME
-
-
+    #GHCLIBPATH=$ghc/lib/$(stripHash $ghc)
+    #LIBHSBASEPATH=$(echo $GHCLIBPATH/base-*/libHSbase-*-ghc*.so)
+    #LIBHSBASENAME=$(basename $LIBHSBASEPATH)
+    #cp --no-preserve=mode $LIBHSBASEPATH $out/jni/$LIBHSBASENAME
+    #
+    #LIBHSINTEGERPATH=$(echo $GHCLIBPATH/integer-simple-*/libHSinteger-simple-*-ghc*.so)
+    #LIBHSINTEGERNAME=$(basename $LIBHSINTEGERPATH)
+    #cp --no-preserve=mode $LIBHSINTEGERPATH $out/jni/$LIBHSINTEGERNAME
+    #
+    #LIBHSPRIMPATH=$(echo $GHCLIBPATH/ghc-prim-*/libHSghc-prim-*-ghc*.so)
+    #LIBHSPRIMNAME=$(basename $LIBHSPRIMPATH)
+    #cp --no-preserve=mode $LIBHSPRIMPATH $out/jni/$LIBHSPRIMNAME
+    #
+    #LIBHSRTSPATH=$(echo $GHCLIBPATH/rts/libHSrts_thr-ghc*.so)
+    #LIBHSRTSNAME=$(basename $LIBHSRTSPATH)
+    #cp --no-preserve=mode $LIBHSRTSPATH $out/jni/$LIBHSRTSNAME
+    #
+    #LIBHSFFIPATH=$(echo $GHCLIBPATH/rts/libffi.so)
+    #LIBHSFFINAME=$(basename $LIBHSFFIPATH)
+    #cp --no-preserve=mode $LIBHSFFIPATH $out/jni/$LIBHSFFINAME
+    #
+    #
     #for CURLIB in "$LIBHSBASENAME" "$LIBHSINTEGERNAME" "$LIBHSPRIMNAME" "$LIBHSRTSNAME" "$LIBHSFFINAME"
     #do
     #  patchelf --remove-needed libffi.so.6 $out/jni/$CURLIB
@@ -82,18 +82,18 @@ in stdenv.mkDerivation {
     #  patchelf --remove-needed libpthread.so.0 $out/jni/$CURLIB
     #  patchelf --remove-needed libc.so.6 $out/jni/$CURLIB
     #done
-
+    #
     # point to HS application shared object
-    APPLIBPATH=$(echo "${app}"/bin/*.so)
-    APPLIBNAME=$(basename $APPLIBPATH)
-    cp --no-preserve=mode $APPLIBPATH $out/jni/$APPLIBNAME
-
-    substituteInPlace $out/jni/Android.mk \
-      --subst-var LIBHSBASENAME \
-      --subst-var LIBHSINTEGERNAME \
-      --subst-var LIBHSPRIMNAME \
-      --subst-var LIBHSRTSNAME \
-      --subst-var LIBHSFFINAME \
-      --subst-var APPLIBNAME
+    #APPLIBPATH=$(echo "${app}"/bin/*.so)
+    #APPLIBNAME=$(basename $APPLIBPATH)
+    #cp --no-preserve=mode $APPLIBPATH $out/jni/$APPLIBNAME
+    #
+    #substituteInPlace $out/jni/Android.mk \
+    #  --subst-var LIBHSBASENAME \
+    #  --subst-var LIBHSINTEGERNAME \
+    #  --subst-var LIBHSPRIMNAME \
+    #  --subst-var LIBHSRTSNAME \
+    #  --subst-var LIBHSFFINAME \
+    #  --subst-var APPLIBNAME
   '';
 }
