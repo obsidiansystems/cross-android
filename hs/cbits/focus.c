@@ -21,10 +21,10 @@ JNIEXPORT void JNICALL JNI_OnUnload( JavaVM *vm, void *pvt ) {
     hs_exit();
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_aspen_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jstring msg) {
+JNIEXPORT void JNICALL Java_systems_obsidian_app_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jstring msg) {
   return;
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleStart_startHandlerShim (JNIEnv *env) {
+JNIEXPORT void JNICALL Java_systems_obsidian_app_JSaddleStart_startHandlerShim (JNIEnv *env) {
   return;
 }
