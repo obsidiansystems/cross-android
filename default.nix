@@ -11,7 +11,7 @@ in rec {
     overrides = self: super: {
       mkDerivation = drv: super.mkDerivation (drv // {
         dontStrip = true;
-        # enableSharedExecutables = true;
+        enableSharedExecutables = false;
       });
     };
   };
