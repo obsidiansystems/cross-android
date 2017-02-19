@@ -9,6 +9,8 @@ import android.view.WindowManager;
 
 import android.os.SystemClock;
 
+import android.util.Log;
+
 public class MainActivity extends Activity
 {
 
@@ -18,6 +20,8 @@ public class MainActivity extends Activity
     /** Called when the activity is first created. */
 
     private native void initJSaddle (JSaddleShim callbackObj);
+
+    private static final String TAG = "JSADDLE";
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -40,13 +44,13 @@ public class MainActivity extends Activity
         JSaddleWebViewClient wv_client = new JSaddleWebViewClient(jsaddle);
         wv.setWebViewClient(wv_client);
         // tell C about the shim so that it can spin up Haskell and connect the two
+        Log.v(TAG, "###jsaddle");
         initJSaddle(jsaddle);
+        Log.v(TAG, "###loadhtml");
         // prepare the page and signal to Haskell that we are ready to start running JSaddle
         jsaddle.loadHTMLString ("<!DOCTYPE html><html><head><title>JSaddle</title></head><body></body></html>");
+        Log.v(TAG, "###start");
         jsaddle.startHandler();
-
-
-        jsaddle.evaluateJavascript("jsaddle.postMessage(\"HELLO WORLD\")");
     }
 }
 

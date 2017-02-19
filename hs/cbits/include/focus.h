@@ -3,7 +3,7 @@
 
 typedef struct native_callbacks {
   void (* jsaddleStart) ();
-  void (* jsaddleResult) (char *);
+  void (* jsaddleResult) (const char *);
   char * jsaddleJsData;
   char * jsaddleHtmlData;
 } native_callbacks;
@@ -20,6 +20,6 @@ JNIEXPORT void JNICALL Java_systems_obsidian_app_JSaddleStart_startHandlerShim (
 
 native_callbacks* appMain (void (* evaluateJs) (char*));
 
-void stubJs (char* js);
+void evaluateJavascriptWrapper (char* js);
 
 #endif

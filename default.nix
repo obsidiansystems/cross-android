@@ -43,6 +43,8 @@ in rec {
       build-depends: base
                    , jsaddle
                    , jsaddle-clib
+                   , reflex
+                   , reflex-dom-core
       hs-source-dirs: src
       ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts -lCffi -lm
       main-is: App.hs
@@ -94,7 +96,7 @@ in rec {
     name = appName;
     src = androidSrc;
     platformVersions = [ "21" ];
-    useGoogleAPIs = false;
+    useGoogleAPIs = true;
     useNDK = true;
     release = true;
     keyStore = ./keystore;
@@ -108,7 +110,7 @@ in rec {
     platformVersion = "21";
     enableGPU = true;
     abiVersion = "arm64-v8a";
-    useGoogleAPIs = false;
+    useGoogleAPIs = true;
     package = androidPackagePrefix + "." + appName;
     activity = ".MainActivity";
   };
