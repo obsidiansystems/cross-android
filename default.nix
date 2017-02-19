@@ -7,8 +7,13 @@ in rec {
   androidNdk = androidenv.androidndk;
   appSrc = ./hs;
 
-  arm64 = mkStuff reflex-platform.nixpkgsCross.android.arm64 reflex-platform.ghcAndroidArm64;
-  armv7a = mkStuff reflex-platform.nixpkgsCross.android.armv7a reflex-platform.ghcAndroidArmv7a;
+  arm64 = mkStuff
+    reflex-platform.nixpkgsCross.android.arm64Impure
+    reflex-platform.ghcAndroidArm64;
+
+  armv7a = mkStuff
+    reflex-platform.nixpkgsCross.android.armv7aImpure
+    reflex-platform.ghcAndroidArmv7a;
 
 mkStuff = nixpkgsAndroid: androidHaskellPackagesBase: rec {
   inherit (nixpkgsAndroid.buildPackages) patchelf;
