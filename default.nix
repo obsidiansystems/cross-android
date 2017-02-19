@@ -4,10 +4,15 @@ let reflex-platform = import ./reflex-platform {};
     appName = "app";
 in rec {
   inherit (nixpkgs) androidenv;
-  vim = nixpkgs.vim;
-  patchelf = reflex-platform.nixpkgsCross.android.arm64Impure.buildPackages.patchelf;
-  libiconv = reflex-platform.nixpkgsCross.android.arm64Impure.libiconv;
-  androidHaskellPackagesBase = reflex-platform.ghcAndroidArm64;
+  androidNdk = androidenv.androidndk;
+  appSrc = ./hs;
+
+  arm64 = mkStuff reflex-platform.nixpkgsCross.android.arm64 reflex-platform.ghcAndroidArm64;
+  armv7a = mkStuff reflex-platform.nixpkgsCross.android.armv7a reflex-platform.ghcAndroidArmv7a;
+
+mkStuff = nixpkgsAndroid: androidHaskellPackagesBase: rec {
+  inherit (nixpkgsAndroid.buildPackages) patchelf;
+  inherit (nixpkgsAndroid) libiconv;
   androidHaskellPackages = androidHaskellPackagesBase.override {
     overrides = self: super: {
       mkDerivation = drv: super.mkDerivation (drv // {
@@ -22,8 +27,6 @@ in rec {
       });
     };
   };
-  androidNdk = androidenv.androidndk;
-  appSrc = ./hs;
   cabalFile = nixpkgs.runCommand "${appName}.cabal" {} ''
     cat > "$out" <<EOF
     name: appName
@@ -49,7 +52,7 @@ in rec {
       ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts -lCffi -lm
       main-is: App.hs
       c-sources: cbits/focus.c
-      include-dirs: cbits/include, "${androidNdk}/libexec/android-ndk-r10e/platforms/android-21/arch-arm64/usr/include/"
+      include-dirs: cbits/include
       includes: jni.h
       install-includes: cbits/include/focus.h
       exposed-modules: App
@@ -114,7 +117,5 @@ in rec {
     package = androidPackagePrefix + "." + appName;
     activity = ".MainActivity";
   };
+};
 }
-
-/*
-*/
