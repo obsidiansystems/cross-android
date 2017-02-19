@@ -22,4 +22,6 @@ native_callbacks* appMain (void (* evaluateJs) (const char*));
 
 void evaluateJavascriptWrapper (const char* js);
 
+int start_logger(const char *app_name);
+
 #endif
