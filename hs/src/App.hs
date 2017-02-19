@@ -1,7 +1,12 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 module App where
 
-foreign export ccall "hello_world" helloWorld :: IO ()
+import Foreign.C.String (CString)
+import Foreign.Ptr (FunPtr, Ptr)
 
-helloWorld :: IO ()
-helloWorld = return ()
+import Language.Javascript.JSaddle.CLib
+
+foreign export ccall appMain :: FunPtr (CString -> IO ()) -> IO (Ptr NativeCallbacks)
+
+appMain :: FunPtr (CString -> IO ()) -> IO (Ptr NativeCallbacks)
+appMain = jsaddleInit (return ())

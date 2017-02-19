@@ -4,11 +4,6 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
 public class JSaddleShim {
-  // static {
-  //   initJSaddle();
-  // }
-  // private static native void initJSaddle ();
-
   private WebView wv;
 
   public JSaddleShim ( WebView n_wv ) {

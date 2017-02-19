@@ -5,13 +5,20 @@ let reflex-platform = import ./reflex-platform {};
 in rec {
   inherit (nixpkgs) androidenv;
   vim = nixpkgs.vim;
-  patchelf = reflex-platform.nixpkgsCross.android.arm64.buildPackages.patchelf;
+  patchelf = reflex-platform.nixpkgsCross.android.arm64Impure.buildPackages.patchelf;
+  libiconv = reflex-platform.nixpkgsCross.android.arm64Impure.libiconv;
   androidHaskellPackagesBase = reflex-platform.ghcAndroidArm64;
   androidHaskellPackages = androidHaskellPackagesBase.override {
     overrides = self: super: {
       mkDerivation = drv: super.mkDerivation (drv // {
         dontStrip = true;
         enableSharedExecutables = false;
+        configureFlags = (drv.configureFlags or []) ++ [
+          "--ghc-option=-fPIC"
+          "--ghc-option=-optc-fPIC"
+          "--ghc-option=-optc-shared"
+          "--ghc-option=-optl-shared"
+        ];
       });
     };
   };
@@ -34,8 +41,10 @@ in rec {
 
     executable lib${appName}.so
       build-depends: base
+                   , jsaddle
+                   , jsaddle-clib
       hs-source-dirs: src
-      ghc-options: -shared -fPIC -threaded -no-hs-main
+      ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts -lCffi -lm
       main-is: App.hs
       c-sources: cbits/focus.c
       include-dirs: cbits/include, "${androidNdk}/libexec/android-ndk-r10e/platforms/android-21/arch-arm64/usr/include/"
@@ -46,7 +55,7 @@ in rec {
       ld-options: -shared
     EOF
   '';
-  hsApp = androidHaskellPackages.callPackage ({ mkDerivation }:
+  hsApp = androidHaskellPackages.callPackage ({ mkDerivation, jsaddle, jsaddle-clib, reflex, reflex-dom-core }:
     mkDerivation (rec {
       pname = "app";
       version = "0";
@@ -57,9 +66,8 @@ in rec {
           cp -r --no-preserve=mode "${appSrc}"/* "$out"/
         '';
       } "";
-      configureFlags = [ ];
-      buildDepends = [ ];
-      buildTools = [ vim ];
+      buildDepends = [ jsaddle jsaddle-clib reflex reflex-dom-core ];
+      buildTools = [ ];
       isExecutable = false;
       isLibrary = false;
       passthru = {
@@ -71,19 +79,12 @@ in rec {
         ln -s "${cabalFile}" "app.cabal"
       '';
       postFixup = ''
-        # SOPATH=$(echo $out/bin/*.so)
-        # patchelf --remove-rpath $SOPATH
-        # xxd $SOPATH > $out/bin/$(basename $SOPATH).dump
-        # patchelf --replace-needed libc.so.6 libc.so $out/bin/*.so
-        # patchelf --remove-needed libffi.so.6 $out/bin/*.so
-        # patchelf --remove-needed libm.so.6 $out/bin/*.so
-        # patchelf --remove-needed librt.so.1 $out/bin/*.so
-        # patchelf --remove-needed libdl.so.2 $out/bin/*.so
-        # patchelf --remove-needed libpthread.so.0 $out/bin/*.so
+        SOPATH=$(echo $out/bin/*.so)
+        patchelf --remove-rpath $SOPATH
       '';
   })) {};
   androidSrc = import ./android {
-    inherit nixpkgs;
+    inherit nixpkgs libiconv;
     inherit (androidHaskellPackages) ghc;
     name = appName;
     app = hsApp;
