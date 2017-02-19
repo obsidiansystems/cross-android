@@ -7,8 +7,9 @@ public class ProcessJSaddleMessage extends AsyncTask <String, Void, Void> {
   @Override
   protected Void doInBackground (String... msgs) {
     for (String msg : msgs) {
-      Log.v ("TEST", msg);
+      Log.v ("JSADDLE", msg);
       processMessageShim (msg);
+      Log.v("JSADDLE", "###jsaddleMessageCalled");
     }
     return null;
   }

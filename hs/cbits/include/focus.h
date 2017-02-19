@@ -4,22 +4,22 @@
 typedef struct native_callbacks {
   void (* jsaddleStart) ();
   void (* jsaddleResult) (const char *);
-  char * jsaddleJsData;
-  char * jsaddleHtmlData;
+  const char * jsaddleJsData;
+  const char * jsaddleHtmlData;
 } native_callbacks;
 
 void __stginit_App (void);
 
 JNIEXPORT jint JNICALL JNI_OnLoad ( JavaVM *vm, void *reserved );
 
-JNIEXPORT void JNICALL JNI_OnUnload( JavaVM *vm, void *pvt );
-
 JNIEXPORT void JNICALL Java_systems_obsidian_app_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jstring msg);
 
 JNIEXPORT void JNICALL Java_systems_obsidian_app_JSaddleStart_startHandlerShim (JNIEnv *env);
 
-native_callbacks* appMain (void (* evaluateJs) (char*));
+JNIEXPORT void JNICALL Java_systems_obsidian_app_MainActivity_initJSaddle (JNIEnv *env, jobject thisObj, jobject jsaddleObj);
 
-void evaluateJavascriptWrapper (char* js);
+native_callbacks* appMain (void (* evaluateJs) (const char*));
+
+void evaluateJavascriptWrapper (const char* js);
 
 #endif

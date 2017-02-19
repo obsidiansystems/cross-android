@@ -7,10 +7,14 @@ import android.net.Uri;
 
 public class JSaddleWebViewClient extends WebViewClient {
   private JSaddleShim jsaddle;
+  private boolean hasLoadedPageOnce;
+  private boolean hasInitJsaddle;
 
   public JSaddleWebViewClient (JSaddleShim new_jsaddle) {
     super();
     jsaddle = new_jsaddle;
+    hasLoadedPageOnce = false;
+    hasInitJsaddle = false;
   }
 
   @Override
@@ -25,6 +29,13 @@ public class JSaddleWebViewClient extends WebViewClient {
   }
 
   public void onPageFinished (WebView view, String url) {
-    jsaddle.startHandler();
+    if(hasLoadedPageOnce) {
+      if(!hasInitJsaddle) {
+        jsaddle.startHandler();
+        hasInitJsaddle = true;
+      }
+    } else{
+      hasLoadedPageOnce = true;
+    }
   }
 }

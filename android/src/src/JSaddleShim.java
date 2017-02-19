@@ -3,6 +3,8 @@ package systems.obsidian.focus;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
+import android.util.Log;
+
 public class JSaddleShim {
   private WebView wv;
 
@@ -15,15 +17,18 @@ public class JSaddleShim {
   }
 
   public void evaluateJavascript ( String javascript ) {
-    wv.evaluateJavascript ( javascript, null );
+    new JSaddleEvaluateJavascript(wv).execute(javascript);
   }
 
   @JavascriptInterface
-  public void postMessage ( String msg ) {
+  public boolean postMessage ( String msg ) {
+    Log.v("JSADDLE", "###callingPostMessage");
     new ProcessJSaddleMessage().execute(msg);
+    return true;
   }
 
   public void startHandler () {
+    Log.v("JSADDLE", "###callingStartHandler");
     new JSaddleStart().execute();
   }
 

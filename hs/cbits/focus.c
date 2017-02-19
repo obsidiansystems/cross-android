@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <jni.h>
+#include <android/log.h>
 #include "HsFFI.h"
 
 #include "focus.h"
@@ -15,10 +16,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad ( JavaVM *vm, void *reserved ) {
   return JNI_VERSION_1_2;
 }
 
-JNIEXPORT void JNICALL JNI_OnUnload( JavaVM *vm, void *pvt ) {
-    hs_exit();
-}
-
 JNIEXPORT void JNICALL Java_systems_obsidian_app_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jstring msg) {
   const char *msg_str = (*env)->GetStringUTFChars(env, msg, NULL);
   (*(hsCallbacks->jsaddleResult))(msg_str);
@@ -26,13 +23,18 @@ JNIEXPORT void JNICALL Java_systems_obsidian_app_ProcessJSaddleMessage_processMe
 }
 
 JNIEXPORT void JNICALL Java_systems_obsidian_app_JSaddleStart_startHandlerShim (JNIEnv *env) {
+  /*
+  jstring js_str = (*env)->NewStringUTF(env, hsCallbacks->jsaddleJsData);
+  (*env)->CallVoidMethod(env, javaCallback, evaluateJSCallback, js_str);
+  */
+  evaluateJavascriptWrapper(hsCallbacks->jsaddleStart);
   (*(hsCallbacks->jsaddleStart))();
   return;
 }
 
 JNIEXPORT void JNICALL Java_systems_obsidian_app_MainActivity_initJSaddle (JNIEnv *env, jobject thisObj, jobject jsaddleObj) {
-  static int argc = 0;
-  static char *argv[] = {NULL};
+  static int argc = 3;
+  static char *argv[] = {"+RTS", "-T", "-RTS"};
   static char **pargv = argv;
   hs_init(&argc, &pargv);
 
@@ -48,13 +50,10 @@ JNIEXPORT void JNICALL Java_systems_obsidian_app_MainActivity_initJSaddle (JNIEn
   jstring html_str = (*env)->NewStringUTF(env, hsCallbacks->jsaddleHtmlData);
   (*env)->CallVoidMethod(env, javaCallback, loadHTMLStringCallback, html_str);
 
-  jstring js_str = (*env)->NewStringUTF(env, hsCallbacks->jsaddleJsData);
-  (*env)->CallVoidMethod(env, javaCallback, evaluateJSCallback, js_str);
-
   return;
 }
 
-void evaluateJavascriptWrapper (char* js) {
+void evaluateJavascriptWrapper (const char* js) {
   JNIEnv *env;
   jint rs = (*jvm)->AttachCurrentThread(jvm, &env, NULL);
   assert (rs == JNI_OK);
