@@ -46,7 +46,7 @@ in rec {
                    , reflex
                    , reflex-dom-core
       hs-source-dirs: src
-      ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts -lCffi -lm
+      ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts -lCffi -lm -llog
       main-is: App.hs
       c-sources: cbits/focus.c
       include-dirs: cbits/include, "${androidNdk}/libexec/android-ndk-r10e/platforms/android-21/arch-arm64/usr/include/"

@@ -17,5 +17,6 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := app
 LOCAL_SRC_FILES := @APPLIBNAME@
 LOCAL_SHARED_LIBRARIES := libiconv libcharset
+LOCAL_LDLIBS := -llog
 
 include $(PREBUILT_SHARED_LIBRARY)

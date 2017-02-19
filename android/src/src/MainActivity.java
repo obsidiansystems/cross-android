@@ -34,23 +34,23 @@ public class MainActivity extends Activity
         setContentView(R.layout.main);
         // find the web view
         WebView wv = (WebView) findViewById (R.id.webview);
-        // enable javascript
+        // enable javascript and debugging
         WebSettings ws = wv.getSettings();
         ws.setJavaScriptEnabled(true);
+        wv.setWebContentsDebuggingEnabled(true);
         // init an object managing the JSaddleShim
         JSaddleShim jsaddle = new JSaddleShim(wv);
-        wv.addJavascriptInterface(jsaddle, "jsaddle");
         // create and set a web view client aware of the JSaddleShim
         JSaddleWebViewClient wv_client = new JSaddleWebViewClient(jsaddle);
         wv.setWebViewClient(wv_client);
+        // register jsaddle javascript interface
+        wv.addJavascriptInterface(jsaddle, "jsaddle");
         // tell C about the shim so that it can spin up Haskell and connect the two
         Log.v(TAG, "###jsaddle");
         initJSaddle(jsaddle);
         Log.v(TAG, "###loadhtml");
         // prepare the page and signal to Haskell that we are ready to start running JSaddle
         jsaddle.loadHTMLString ("<!DOCTYPE html><html><head><title>JSaddle</title></head><body></body></html>");
-        Log.v(TAG, "###start");
-        jsaddle.startHandler();
     }
 }
 
