@@ -16,7 +16,7 @@ public class MainActivity extends Activity
 {
 
     static {
-        System.loadLibrary("app");
+        System.loadLibrary("@APPNAME@");
     }
     /** Called when the activity is first created. */
 
@@ -61,6 +61,6 @@ public class MainActivity extends Activity
             startJSaddleProcessing();
             Log.v("JSADDLE", "###startHandlerCalled");
           }
-        }, 500);
+        }, 10000);
     }
 }

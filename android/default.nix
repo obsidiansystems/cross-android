@@ -48,6 +48,9 @@ in stdenv.mkDerivation {
     cp -r --no-preserve=mode "$src/src/." "$out/${packageSrcDir}"
     sed -i 's|package systems.obsidian.focus;|package '"${packageName}"\;'|' "$out/${packageSrcDir}/"*".java"
 
+    substituteInPlace "$out/${packageSrcDir}/MainActivity.java" \
+      --subst-var-by APPNAME "${appName}"
+
     cp -r --no-preserve=mode "$src/res" $out
 
     cp -r --no-preserve=mode "$src/jni" $out

@@ -56,27 +56,27 @@ JNIEXPORT jint JNICALL JNI_OnLoad ( JavaVM *vm, void *reserved ) {
   return JNI_VERSION_1_6;
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_app_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jobject thisObject, jstring msg) {
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jobject thisObject, jstring msg) {
   const char *msg_str = (*env)->GetStringUTFChars(env, msg, NULL);
   (*(hsCallbacks->jsaddleResult))(msg_str);
   return;
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_app_JSaddleWebViewClient_injectJSaddleCode (JNIEnv *env) {
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleWebViewClient_injectJSaddleCode (JNIEnv *env) {
   jstring js_str = (*env)->NewStringUTF(env, hsCallbacks->jsaddleJsData);
   (*env)->CallVoidMethod(env, javaCallback, evaluateJSCallback, js_str);
   return;
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_app_MainActivity_initJSaddle (JNIEnv *env, jobject thisObj, jobject jsaddleObj) {
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_MainActivity_initJSaddle (JNIEnv *env, jobject thisObj, jobject jsaddleObj) {
   start_logger("JSADDLEC");
 
-  static int argc = 4;
-  static char *argv[] = {"+RTS", "-T", "-N2", "-RTS"};
+  static int argc = 5;
+  static char *argv[] = {"+RTS", "-T", "-N2", "-I0", "-RTS"};
   static char **pargv = argv;
   hs_init(&argc, &pargv);
 
-  hs_add_root (__stginit_App);
+  hs_add_root (__stginit_FrontendziApp);
 
   javaCallback = (*env)->NewGlobalRef(env, jsaddleObj);
   jclass cls = (*env)->GetObjectClass(env, javaCallback);
@@ -91,7 +91,7 @@ JNIEXPORT void JNICALL Java_systems_obsidian_app_MainActivity_initJSaddle (JNIEn
   return;
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_app_MainActivity_startJSaddleProcessing (JNIEnv *env) {
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_MainActivity_startJSaddleProcessing (JNIEnv *env) {
   (*(hsCallbacks->jsaddleStart))();
   return;
 }
