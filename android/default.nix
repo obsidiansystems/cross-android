@@ -61,6 +61,8 @@ in stdenv.mkDerivation {
       --subst-var-by APPNAME "${appName}"
 
     cp -r --no-preserve=mode "$src/res" $out
+    substituteInPlace "$out/res/values/strings.xml" \
+      --subst-var-by APPDISPLAYNAME "${appName}"
 
     cp -r --no-preserve=mode "$src/jni" $out
     substituteInPlace $out/jni/Application.mk \
