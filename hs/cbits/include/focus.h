@@ -10,22 +10,10 @@ typedef struct native_callbacks {
 
 void __stginit_App (void);
 
-void haskell_yield (void);
-
 native_callbacks* appMain (void (* evaluateJs) (const char*));
 
 int start_logger(const char *app_name);
 
 void evaluateJavascriptWrapper (const char* js);
-
-/*
-JNIEXPORT jint JNICALL JNI_OnLoad ( JavaVM *vm, void *reserved );
-
-JNIEXPORT void JNICALL Java_systems_obsidian_app_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jstring msg);
-
-JNIEXPORT void JNICALL Java_systems_obsidian_app_JSaddleStart_startHandlerShim (JNIEnv *env);
-
-JNIEXPORT void JNICALL Java_systems_obsidian_app_MainActivity_initJSaddle (JNIEnv *env, jobject thisObj, jobject jsaddleObj);
-*/
 
 #endif

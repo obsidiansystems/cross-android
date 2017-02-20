@@ -96,11 +96,6 @@ JNIEXPORT void JNICALL Java_systems_obsidian_app_MainActivity_startJSaddleProces
   return;
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_app_MainActivity_haskellYield (JNIEnv *env){
-  haskell_yield();
-  return;
-}
-
 void evaluateJavascriptWrapper (const char* js) {
   JNIEnv *env;
   jint rs = (*jvm)->AttachCurrentThread(jvm, &env, NULL);

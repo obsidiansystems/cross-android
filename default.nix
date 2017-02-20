@@ -59,7 +59,7 @@ mkStuff = { nixpkgsAndroid, androidHaskellPackagesBase, abiVersion }: rec {
                    , reflex-dom-core
                    , transformers
       hs-source-dirs: src
-      ghc-options: -Rghc-timing -shared -fPIC -threaded -no-hs-main -lHSrts -lCffi -lm -llog
+      ghc-options: -Rghc-timing -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog
       main-is: App.hs
       c-sources: cbits/focus.c
       include-dirs: cbits/include

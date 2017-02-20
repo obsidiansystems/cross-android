@@ -61,17 +61,6 @@ public class MainActivity extends Activity
             startJSaddleProcessing();
             Log.v("JSADDLE", "###startHandlerCalled");
           }
-        }, 1000);
-
-        new Timer().schedule(new TimerTask() {
-          @Override
-          public void run() {
-            haskellYield();
-            haskellYield();
-            Log.v("JSADDLE", "###haskellYield");
-          }
-        }, 1100, 100);
+        }, 500);
     }
 }
-
-// wv.loadUrl("file:///android_asset/frontend.jsexe/index.html");

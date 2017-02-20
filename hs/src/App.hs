@@ -2,7 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module App where
 
-import Control.Concurrent (yield)
 import Control.Monad.IO.Class
 import Foreign.C.String (CString)
 import Foreign.Ptr (FunPtr, Ptr)
@@ -13,8 +12,6 @@ import Reflex.Dom.Core
 import System.IO
 
 foreign export ccall appMain :: FunPtr (CString -> IO ()) -> IO (Ptr NativeCallbacks)
-
-foreign export ccall "haskell_yield" yield :: IO ()
 
 appMain :: FunPtr (CString -> IO ()) -> IO (Ptr NativeCallbacks)
 appMain evalJs = do
