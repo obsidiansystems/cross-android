@@ -8,7 +8,7 @@ typedef struct native_callbacks {
   const char * jsaddleHtmlData;
 } native_callbacks;
 
-void __stginit_FrontendziApp (void);
+void __stginit_Mobile (void);
 
 native_callbacks* appMain (void (* evaluateJs) (const char*));
 

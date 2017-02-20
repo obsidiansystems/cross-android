@@ -59,6 +59,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad ( JavaVM *vm, void *reserved ) {
 JNIEXPORT void JNICALL Java_systems_obsidian_focus_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jobject thisObject, jstring msg) {
   const char *msg_str = (*env)->GetStringUTFChars(env, msg, NULL);
   (*(hsCallbacks->jsaddleResult))(msg_str);
+  (*env)->ReleaseStringUTFChars(env, msg, msg_str);
   return;
 }
 
@@ -72,11 +73,11 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_MainActivity_initJSaddle (JNI
   start_logger("JSADDLEC");
 
   static int argc = 5;
-  static char *argv[] = {"+RTS", "-T", "-N2", "-I0", "-RTS"};
+  static char *argv[] = {"jsaddle", "+RTS", "-N2", "-I0", "-RTS"};
   static char **pargv = argv;
-  hs_init(&argc, &pargv);
+  hs_init_with_rtsopts(&argc, &pargv);
 
-  hs_add_root (__stginit_FrontendziApp);
+  hs_add_root (__stginit_Mobile);
 
   javaCallback = (*env)->NewGlobalRef(env, jsaddleObj);
   jclass cls = (*env)->GetObjectClass(env, javaCallback);

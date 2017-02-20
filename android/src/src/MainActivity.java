@@ -65,6 +65,6 @@ public class MainActivity extends Activity
             startJSaddleProcessing();
             Log.v("JSADDLE", "###startHandlerCalled");
           }
-        }, 250);
+        }, 1000);
     }
 }
