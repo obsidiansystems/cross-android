@@ -7,15 +7,19 @@ in rec {
   androidNdk = androidenv.androidndk;
   appSrc = ./hs;
 
-  arm64 = mkStuff
-    reflex-platform.nixpkgsCross.android.arm64Impure
-    reflex-platform.ghcAndroidArm64;
+  arm64 = mkStuff {
+    nixpkgsAndroid = reflex-platform.nixpkgsCross.android.arm64Impure;
+    androidHaskellPackagesBase = reflex-platform.ghcAndroidArm64;
+    abiVersion = "arm64-v8a";
+  };
 
-  armv7a = mkStuff
-    reflex-platform.nixpkgsCross.android.armv7aImpure
-    reflex-platform.ghcAndroidArmv7a;
+  armv7a = mkStuff {
+    nixpkgsAndroid = reflex-platform.nixpkgsCross.android.armv7aImpure;
+    androidHaskellPackagesBase = reflex-platform.ghcAndroidArmv7a;
+    abiVersion = "armeabi-v7a";
+  };
 
-mkStuff = nixpkgsAndroid: androidHaskellPackagesBase: rec {
+mkStuff = { nixpkgsAndroid, androidHaskellPackagesBase, abiVersion }: rec {
   inherit (nixpkgsAndroid.buildPackages) patchelf;
   inherit (nixpkgsAndroid) libiconv;
   androidHaskellPackages = androidHaskellPackagesBase.override {
@@ -99,12 +103,14 @@ mkStuff = nixpkgsAndroid: androidHaskellPackagesBase: rec {
     name = appName;
     app = hsApp;
     packagePrefix = androidPackagePrefix;
+    inherit abiVersion;
   };
   androidApp = nixpkgs.androidenv.buildApp {
     name = appName;
     src = androidSrc;
     platformVersions = [ "21" ];
     useGoogleAPIs = true;
+    inherit abiVersion;
     useNDK = true;
     release = true;
     keyStore = ./keystore;
@@ -116,9 +122,9 @@ mkStuff = nixpkgsAndroid: androidHaskellPackagesBase: rec {
     name = appName;
     app = androidApp;
     platformVersion = "21";
-    enableGPU = true;
-    abiVersion = "arm64-v8a";
     useGoogleAPIs = true;
+    inherit abiVersion;
+    enableGPU = true;
     package = androidPackagePrefix + "." + appName;
     activity = ".MainActivity";
   };

@@ -4,6 +4,7 @@
 , ghc
 , app
 , libiconv
+, abiVersion
 }:
 
 let inherit (nixpkgs) stdenv;
@@ -50,6 +51,8 @@ in stdenv.mkDerivation {
     cp -r --no-preserve=mode "$src/res" $out
 
     cp -r --no-preserve=mode "$src/jni" $out
+    substituteInPlace $out/jni/Application.mk \
+      --subst-var-by ABI_VER "${abiVersion}"
     # sed -i 's|systems_obsidian_focus|'"${packageJNIName}"'|' "$out/jni/"*"."{c,h}
 
     # move libiconv to the correct place
