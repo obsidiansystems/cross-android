@@ -41,35 +41,30 @@ public class MainActivity extends Activity
         // enable javascript and debugging
         WebSettings ws = wv.getSettings();
         ws.setJavaScriptEnabled(true);
+        ws.setAllowFileAccessFromFileURLs(true); //Maybe you don't need this rule
+        ws.setAllowUniversalAccessFromFileURLs(true);
         wv.setWebContentsDebuggingEnabled(true);
+        // init an object managing the JSaddleShim
+        JSaddleShim jsaddle = new JSaddleShim(wv);
+        // create and set a web view client aware of the JSaddleShim
+        JSaddleWebViewClient wv_client = new JSaddleWebViewClient();
+        wv.setWebViewClient(wv_client);
+        // register jsaddle javascript interface
+        wv.addJavascriptInterface(jsaddle, "jsaddle");
+        // tell C about the shim so that it can spin up Haskell and connect the two
+        Log.v(TAG, "###jsaddle");
+        initJSaddle(jsaddle);
+        Log.v(TAG, "###loadhtml");
         wv.loadUrl("file:///android_asset/index.html");
 
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
           @Override
           public void run() {
-            // init an object managing the JSaddleShim
-            JSaddleShim jsaddle = new JSaddleShim(wv);
-            // create and set a web view client aware of the JSaddleShim
-            JSaddleWebViewClient wv_client = new JSaddleWebViewClient();
-            wv.setWebViewClient(wv_client);
-            // register jsaddle javascript interface
-            wv.addJavascriptInterface(jsaddle, "jsaddle");
-            // tell C about the shim so that it can spin up Haskell and connect the two
-            Log.v(TAG, "###jsaddle");
-            initJSaddle(jsaddle);
-            Log.v(TAG, "###loadhtml");
             // prepare the page and signal to Haskell that we are ready to start running JSaddle onPageFinished
-          }
-        }, 10000);
-        /*
-        handler.postDelayed(new Runnable() {
-          @Override
-          public void run() {
             startJSaddleProcessing();
             Log.v("JSADDLE", "###startHandlerCalled");
           }
-        }, 20000);
-        */
+        }, 10000);
     }
 }
