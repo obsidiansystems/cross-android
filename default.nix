@@ -1,10 +1,8 @@
-{ reflex-platform ? import ./reflex-platform {}
-, androidPackagePrefix ? "systems.obsidian"
-, appName = "app"
-}:
-
-rec {
-  inherit (reflex-platform) nixpkgs;
+let reflex-platform = import ./reflex-platform {};
+    inherit (reflex-platform) nixpkgs;
+    androidPackagePrefix = "systems.obsidian";
+    appName = "app";
+in rec {
   inherit (nixpkgs) androidenv;
   androidNdk = androidenv.androidndk;
   appSrc = ./hs;
