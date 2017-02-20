@@ -81,12 +81,12 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_MainActivity_initJSaddle (JNI
   javaCallback = (*env)->NewGlobalRef(env, jsaddleObj);
   jclass cls = (*env)->GetObjectClass(env, javaCallback);
   evaluateJSCallback = (*env)->GetMethodID(env, cls, "evaluateJavascript", "(Ljava/lang/String;)V");
-  jmethodID loadHTMLStringCallback = (*env)->GetMethodID(env, cls, "loadHTMLString", "(Ljava/lang/String;)V");
+  //  jmethodID loadHTMLStringCallback = (*env)->GetMethodID(env, cls, "loadHTMLString", "(Ljava/lang/String;)V");
 
   hsCallbacks = appMain (&evaluateJavascriptWrapper);
 
-  jstring html_str = (*env)->NewStringUTF(env, hsCallbacks->jsaddleHtmlData);
-  (*env)->CallVoidMethod(env, javaCallback, loadHTMLStringCallback, html_str);
+  //  jstring html_str = (*env)->NewStringUTF(env, hsCallbacks->jsaddleHtmlData);
+  //  (*env)->CallVoidMethod(env, javaCallback, loadHTMLStringCallback, html_str);
 
   return;
 }

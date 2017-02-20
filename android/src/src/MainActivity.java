@@ -8,6 +8,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.os.SystemClock;
 import android.util.Log;
+import android.os.Handler;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -36,32 +37,39 @@ public class MainActivity extends Activity
 
         setContentView(R.layout.main);
         // find the web view
-        WebView wv = (WebView) findViewById (R.id.webview);
+        final WebView wv = (WebView) findViewById (R.id.webview);
         // enable javascript and debugging
         WebSettings ws = wv.getSettings();
         ws.setJavaScriptEnabled(true);
         wv.setWebContentsDebuggingEnabled(true);
         wv.loadUrl("file:///android_asset/index.html");
 
-        // init an object managing the JSaddleShim
-        JSaddleShim jsaddle = new JSaddleShim(wv);
-        // create and set a web view client aware of the JSaddleShim
-        JSaddleWebViewClient wv_client = new JSaddleWebViewClient();
-        wv.setWebViewClient(wv_client);
-        // register jsaddle javascript interface
-        wv.addJavascriptInterface(jsaddle, "jsaddle");
-        // tell C about the shim so that it can spin up Haskell and connect the two
-        Log.v(TAG, "###jsaddle");
-        initJSaddle(jsaddle);
-        Log.v(TAG, "###loadhtml");
-        // prepare the page and signal to Haskell that we are ready to start running JSaddle onPageFinished
-
-        new Timer().schedule(new TimerTask() {
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+          @Override
+          public void run() {
+            // init an object managing the JSaddleShim
+            JSaddleShim jsaddle = new JSaddleShim(wv);
+            // create and set a web view client aware of the JSaddleShim
+            JSaddleWebViewClient wv_client = new JSaddleWebViewClient();
+            wv.setWebViewClient(wv_client);
+            // register jsaddle javascript interface
+            wv.addJavascriptInterface(jsaddle, "jsaddle");
+            // tell C about the shim so that it can spin up Haskell and connect the two
+            Log.v(TAG, "###jsaddle");
+            initJSaddle(jsaddle);
+            Log.v(TAG, "###loadhtml");
+            // prepare the page and signal to Haskell that we are ready to start running JSaddle onPageFinished
+          }
+        }, 10000);
+        /*
+        handler.postDelayed(new Runnable() {
           @Override
           public void run() {
             startJSaddleProcessing();
             Log.v("JSADDLE", "###startHandlerCalled");
           }
-        }, 10000);
+        }, 20000);
+        */
     }
 }
