@@ -45,8 +45,9 @@ in rec {
                    , jsaddle-clib
                    , reflex
                    , reflex-dom-core
+                   , transformers
       hs-source-dirs: src
-      ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts -lCffi -lm -llog
+      ghc-options: -Rghc-timing -shared -fPIC -threaded -no-hs-main -lHSrts -lCffi -lm -llog
       main-is: App.hs
       c-sources: cbits/focus.c
       include-dirs: cbits/include, "${androidNdk}/libexec/android-ndk-r10e/platforms/android-21/arch-arm64/usr/include/"
@@ -95,7 +96,7 @@ in rec {
   androidApp = nixpkgs.androidenv.buildApp {
     name = appName;
     src = androidSrc;
-    platformVersions = [ "21" ];
+    platformVersions = [ "23" ];
     useGoogleAPIs = true;
     useNDK = true;
     release = true;
@@ -107,7 +108,7 @@ in rec {
   androidEmulate = nixpkgs.androidenv.emulateApp {
     name = appName;
     app = androidApp;
-    platformVersion = "21";
+    platformVersion = "23";
     enableGPU = true;
     abiVersion = "arm64-v8a";
     useGoogleAPIs = true;
