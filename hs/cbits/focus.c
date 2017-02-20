@@ -53,20 +53,19 @@ void *thread_func(void* unused)
 
 JNIEXPORT jint JNICALL JNI_OnLoad ( JavaVM *vm, void *reserved ) {
   jvm = vm;
-  return JNI_VERSION_1_2;
+  return JNI_VERSION_1_6;
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_app_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jstring msg) {
+JNIEXPORT void JNICALL Java_systems_obsidian_app_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jobject thisObject, jstring msg) {
   const char *msg_str = (*env)->GetStringUTFChars(env, msg, NULL);
-  puts ( msg_str );
+  printf ( "DANK: %s", msg_str );
   (*(hsCallbacks->jsaddleResult))(msg_str);
   return;
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_app_JSaddleStart_startHandlerShim (JNIEnv *env) {
+JNIEXPORT void JNICALL Java_systems_obsidian_app_JSaddleWebViewClient_injectJSaddleCode (JNIEnv *env) {
   jstring js_str = (*env)->NewStringUTF(env, hsCallbacks->jsaddleJsData);
   (*env)->CallVoidMethod(env, javaCallback, evaluateJSCallback, js_str);
-  (*(hsCallbacks->jsaddleStart))();
   return;
 }
 
@@ -90,6 +89,16 @@ JNIEXPORT void JNICALL Java_systems_obsidian_app_MainActivity_initJSaddle (JNIEn
   jstring html_str = (*env)->NewStringUTF(env, hsCallbacks->jsaddleHtmlData);
   (*env)->CallVoidMethod(env, javaCallback, loadHTMLStringCallback, html_str);
 
+  return;
+}
+
+JNIEXPORT void JNICALL Java_systems_obsidian_app_MainActivity_startJSaddleProcessing (JNIEnv *env) {
+  (*(hsCallbacks->jsaddleStart))();
+  return;
+}
+
+JNIEXPORT void JNICALL Java_systems_obsidian_app_MainActivity_haskellYield (JNIEnv *env){
+  haskell_yield();
   return;
 }
 

@@ -9,7 +9,7 @@ public class ProcessJSaddleMessage extends AsyncTask <String, Void, Void> {
     for (String msg : msgs) {
       Log.v ("JSADDLE", msg);
       processMessageShim (msg);
-      Log.v("JSADDLE", "###jsaddleMessageCalled");
+      Log.v("JSADDLE", "###processJSaddleMessageCalled");
     }
     return null;
   }

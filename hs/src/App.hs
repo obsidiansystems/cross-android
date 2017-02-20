@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module App where
 
+import Control.Concurrent (yield)
 import Control.Monad.IO.Class
 import Foreign.C.String (CString)
 import Foreign.Ptr (FunPtr, Ptr)
@@ -13,12 +14,12 @@ import System.IO
 
 foreign export ccall appMain :: FunPtr (CString -> IO ()) -> IO (Ptr NativeCallbacks)
 
+foreign export ccall "haskell_yield" yield :: IO ()
+
 appMain :: FunPtr (CString -> IO ()) -> IO (Ptr NativeCallbacks)
 appMain evalJs = do
   hSetBuffering stdout LineBuffering
-  res <- flip jsaddleInit evalJs $ do
-    liftIO $ hPutStrLn stdout "YOUR FACE"
-    mainWidget $ do
-      text "Hello World!"
+  res <- flip jsaddleInit evalJs $ mainWidget $ do
+    text "Hello World!"
   return res
 

@@ -8,15 +8,16 @@ import android.net.Uri;
 import android.util.Log;
 
 public class JSaddleWebViewClient extends WebViewClient {
-  private JSaddleShim jsaddle;
   private boolean hasLoadedPageOnce;
-  private boolean hasInitJsaddle;
+  private boolean hasInjectedJSaddle;
 
-  public JSaddleWebViewClient (JSaddleShim new_jsaddle) {
+  private native void injectJSaddleCode ();
+  private native void startJSaddleProcessing ();
+
+  public JSaddleWebViewClient () {
     super();
-    jsaddle = new_jsaddle;
     hasLoadedPageOnce = false;
-    hasInitJsaddle = false;
+    hasInjectedJSaddle = false;
   }
 
   public boolean onConsoleMessage(ConsoleMessage cm)
@@ -38,9 +39,10 @@ public class JSaddleWebViewClient extends WebViewClient {
 
   public void onPageFinished (WebView view, String url) {
     if(hasLoadedPageOnce) {
-      if(!hasInitJsaddle) {
-        jsaddle.startHandler();
-        hasInitJsaddle = true;
+      if(!hasInjectedJSaddle) {
+        injectJSaddleCode();
+        Log.v("JSADDLE", "###jsaddleCodeInjected");
+        hasInjectedJSaddle = true;
       }
     } else{
       hasLoadedPageOnce = true;

@@ -6,10 +6,11 @@ import android.webkit.WebView;
 import android.webkit.WebSettings;
 import android.view.Window;
 import android.view.WindowManager;
-
 import android.os.SystemClock;
-
 import android.util.Log;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends Activity
 {
@@ -20,6 +21,8 @@ public class MainActivity extends Activity
     /** Called when the activity is first created. */
 
     private native void initJSaddle (JSaddleShim callbackObj);
+    private native void startJSaddleProcessing ();
+    private native void haskellYield ();
 
     private static final String TAG = "JSADDLE";
 
@@ -41,7 +44,7 @@ public class MainActivity extends Activity
         // init an object managing the JSaddleShim
         JSaddleShim jsaddle = new JSaddleShim(wv);
         // create and set a web view client aware of the JSaddleShim
-        JSaddleWebViewClient wv_client = new JSaddleWebViewClient(jsaddle);
+        JSaddleWebViewClient wv_client = new JSaddleWebViewClient();
         wv.setWebViewClient(wv_client);
         // register jsaddle javascript interface
         wv.addJavascriptInterface(jsaddle, "jsaddle");
@@ -49,8 +52,25 @@ public class MainActivity extends Activity
         Log.v(TAG, "###jsaddle");
         initJSaddle(jsaddle);
         Log.v(TAG, "###loadhtml");
-        // prepare the page and signal to Haskell that we are ready to start running JSaddle
+        // prepare the page and signal to Haskell that we are ready to start running JSaddle onPageFinished
         jsaddle.loadHTMLString ("<!DOCTYPE html><html><head><title>JSaddle</title></head><body></body></html>");
+
+        new Timer().schedule(new TimerTask() {
+          @Override
+          public void run() {
+            startJSaddleProcessing();
+            Log.v("JSADDLE", "###startHandlerCalled");
+          }
+        }, 1000);
+
+        new Timer().schedule(new TimerTask() {
+          @Override
+          public void run() {
+            haskellYield();
+            haskellYield();
+            Log.v("JSADDLE", "###haskellYield");
+          }
+        }, 1100, 100);
     }
 }
 
