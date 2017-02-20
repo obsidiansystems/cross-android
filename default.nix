@@ -57,8 +57,9 @@ mkStuff = { nixpkgsAndroid, androidHaskellPackagesBase, abiVersion }: rec {
                    , jsaddle-clib
                    , reflex
                    , reflex-dom-core
+                   , transformers
       hs-source-dirs: src
-      ghc-options: -shared -fPIC -threaded -no-hs-main -lHSrts -lCffi -lm -llog
+      ghc-options: -Rghc-timing -shared -fPIC -threaded -no-hs-main -lHSrts -lCffi -lm -llog
       main-is: App.hs
       c-sources: cbits/focus.c
       include-dirs: cbits/include
@@ -108,7 +109,7 @@ mkStuff = { nixpkgsAndroid, androidHaskellPackagesBase, abiVersion }: rec {
   androidApp = nixpkgs.androidenv.buildApp {
     name = appName;
     src = androidSrc;
-    platformVersions = [ "21" ];
+    platformVersions = [ "23" ];
     useGoogleAPIs = true;
     inherit abiVersion;
     useNDK = true;
@@ -121,7 +122,7 @@ mkStuff = { nixpkgsAndroid, androidHaskellPackagesBase, abiVersion }: rec {
   androidEmulate = nixpkgs.androidenv.emulateApp {
     name = appName;
     app = androidApp;
-    platformVersion = "21";
+    platformVersion = "23";
     useGoogleAPIs = true;
     inherit abiVersion;
     enableGPU = true;

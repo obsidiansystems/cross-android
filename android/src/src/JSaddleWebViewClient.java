@@ -2,8 +2,10 @@ package systems.obsidian.focus;
 
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.ConsoleMessage;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 
 public class JSaddleWebViewClient extends WebViewClient {
   private JSaddleShim jsaddle;
@@ -15,6 +17,12 @@ public class JSaddleWebViewClient extends WebViewClient {
     jsaddle = new_jsaddle;
     hasLoadedPageOnce = false;
     hasInitJsaddle = false;
+  }
+
+  public boolean onConsoleMessage(ConsoleMessage cm)
+  {
+      Log.v("JSADDLEJS", String.format("%s @ %d: %s", cm.message(), cm.lineNumber(), cm.sourceId()));
+      return true;
   }
 
   @Override

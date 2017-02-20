@@ -42,7 +42,7 @@ int start_logger(const char *app_name) {
 void *thread_func(void* unused)
 {
     ssize_t rdsz;
-    char buf[128];
+    char buf[256];
     while((rdsz = read(pfd[0], buf, sizeof buf - 1)) > 0) {
         if(buf[rdsz - 1] == '\n') --rdsz;
         buf[rdsz] = 0;  /* add null-terminator */
@@ -58,6 +58,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad ( JavaVM *vm, void *reserved ) {
 
 JNIEXPORT void JNICALL Java_systems_obsidian_app_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jstring msg) {
   const char *msg_str = (*env)->GetStringUTFChars(env, msg, NULL);
+  puts ( msg_str );
   (*(hsCallbacks->jsaddleResult))(msg_str);
   return;
 }
@@ -70,10 +71,11 @@ JNIEXPORT void JNICALL Java_systems_obsidian_app_JSaddleStart_startHandlerShim (
 }
 
 JNIEXPORT void JNICALL Java_systems_obsidian_app_MainActivity_initJSaddle (JNIEnv *env, jobject thisObj, jobject jsaddleObj) {
-  static int argc = 3;
-  static char *argv[] = {"+RTS", "-T", "-RTS"};
-  static char **pargv = argv;
   start_logger("JSADDLEC");
+
+  static int argc = 4;
+  static char *argv[] = {"+RTS", "-T", "-N2", "-RTS"};
+  static char **pargv = argv;
   hs_init(&argc, &pargv);
 
   hs_add_root (__stginit_App);

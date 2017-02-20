@@ -20,6 +20,10 @@ public class JSaddleShim {
     new JSaddleEvaluateJavascript(wv).execute(javascript);
   }
 
+  public void evaluateJavascriptSync ( String javascript ) {
+    new JSaddleEvaluateJavascriptSync(wv).execute(javascript);
+  }
+
   @JavascriptInterface
   public boolean postMessage ( String msg ) {
     Log.v("JSADDLE", "###callingPostMessage");
