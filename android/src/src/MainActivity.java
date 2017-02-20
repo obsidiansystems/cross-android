@@ -41,6 +41,8 @@ public class MainActivity extends Activity
         WebSettings ws = wv.getSettings();
         ws.setJavaScriptEnabled(true);
         wv.setWebContentsDebuggingEnabled(true);
+        wv.loadUrl("file:///android_asset/index.html");
+
         // init an object managing the JSaddleShim
         JSaddleShim jsaddle = new JSaddleShim(wv);
         // create and set a web view client aware of the JSaddleShim
@@ -53,7 +55,6 @@ public class MainActivity extends Activity
         initJSaddle(jsaddle);
         Log.v(TAG, "###loadhtml");
         // prepare the page and signal to Haskell that we are ready to start running JSaddle onPageFinished
-        jsaddle.loadHTMLString ("<!DOCTYPE html><html><head><title>JSaddle</title></head><body></body></html>");
 
         new Timer().schedule(new TimerTask() {
           @Override

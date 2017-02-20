@@ -5,6 +5,7 @@
 , app
 , libiconv
 , abiVersion
+, staticSrc
 }:
 
 let inherit (nixpkgs) stdenv;
@@ -13,6 +14,14 @@ let inherit (nixpkgs) stdenv;
     packageSrcDir = "src/" + builtins.replaceStrings ["."] ["/"] packageName;
     packageJNIName = builtins.replaceStrings ["."] ["_"] packageName;
     androidSdk = nixpkgs.androidenv.androidsdk_6_0_extras;
+    indexHtml = builtins.toFile "index.html" ''
+      <html>
+        <head>
+        </head>
+        <body>
+        </body>
+      </html>
+    '';
 in stdenv.mkDerivation {
   inherit androidSdk ghc; # frontend;
   name = "android-app";
@@ -69,5 +78,9 @@ in stdenv.mkDerivation {
 
     substituteInPlace $out/jni/Android.mk \
       --subst-var APPLIBNAME
+
+    mkdir -p $out/assets
+    cp -RL "${staticSrc}"/* "$out/assets/"
+    cp -RL "${indexHtml}"   "$out/assets/index.html"
   '';
 }
