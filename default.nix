@@ -4,10 +4,24 @@ let reflex-platform = import ./reflex-platform {};
     appName = "app";
 in rec {
   inherit (nixpkgs) androidenv;
-  vim = nixpkgs.vim;
-  patchelf = reflex-platform.nixpkgsCross.android.arm64Impure.buildPackages.patchelf;
-  libiconv = reflex-platform.nixpkgsCross.android.arm64Impure.libiconv;
-  androidHaskellPackagesBase = reflex-platform.ghcAndroidArm64;
+  androidNdk = androidenv.androidndk;
+  appSrc = ./hs;
+
+  arm64 = mkStuff {
+    nixpkgsAndroid = reflex-platform.nixpkgsCross.android.arm64Impure;
+    androidHaskellPackagesBase = reflex-platform.ghcAndroidArm64;
+    abiVersion = "arm64-v8a";
+  };
+
+  armv7a = mkStuff {
+    nixpkgsAndroid = reflex-platform.nixpkgsCross.android.armv7aImpure;
+    androidHaskellPackagesBase = reflex-platform.ghcAndroidArmv7a;
+    abiVersion = "armeabi-v7a";
+  };
+
+mkStuff = { nixpkgsAndroid, androidHaskellPackagesBase, abiVersion }: rec {
+  inherit (nixpkgsAndroid.buildPackages) patchelf;
+  inherit (nixpkgsAndroid) libiconv;
   androidHaskellPackages = androidHaskellPackagesBase.override {
     overrides = self: super: {
       mkDerivation = drv: super.mkDerivation (drv // {
@@ -22,8 +36,6 @@ in rec {
       });
     };
   };
-  androidNdk = androidenv.androidndk;
-  appSrc = ./hs;
   cabalFile = nixpkgs.runCommand "${appName}.cabal" {} ''
     cat > "$out" <<EOF
     name: appName
@@ -50,7 +62,7 @@ in rec {
       ghc-options: -Rghc-timing -shared -fPIC -threaded -no-hs-main -lHSrts -lCffi -lm -llog
       main-is: App.hs
       c-sources: cbits/focus.c
-      include-dirs: cbits/include, "${androidNdk}/libexec/android-ndk-r10e/platforms/android-21/arch-arm64/usr/include/"
+      include-dirs: cbits/include
       includes: jni.h
       install-includes: cbits/include/focus.h
       exposed-modules: App
@@ -92,12 +104,14 @@ in rec {
     name = appName;
     app = hsApp;
     packagePrefix = androidPackagePrefix;
+    inherit abiVersion;
   };
   androidApp = nixpkgs.androidenv.buildApp {
     name = appName;
     src = androidSrc;
     platformVersions = [ "23" ];
     useGoogleAPIs = true;
+    inherit abiVersion;
     useNDK = true;
     release = true;
     keyStore = ./keystore;
@@ -109,13 +123,11 @@ in rec {
     name = appName;
     app = androidApp;
     platformVersion = "23";
-    enableGPU = true;
-    abiVersion = "arm64-v8a";
     useGoogleAPIs = true;
+    inherit abiVersion;
+    enableGPU = true;
     package = androidPackagePrefix + "." + appName;
     activity = ".MainActivity";
   };
+};
 }
-
-/*
-*/
