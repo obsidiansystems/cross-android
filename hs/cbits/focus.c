@@ -58,7 +58,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad ( JavaVM *vm, void *reserved ) {
 
 JNIEXPORT void JNICALL Java_systems_obsidian_app_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jobject thisObject, jstring msg) {
   const char *msg_str = (*env)->GetStringUTFChars(env, msg, NULL);
-  printf ( "DANK: %s", msg_str );
   (*(hsCallbacks->jsaddleResult))(msg_str);
   return;
 }
