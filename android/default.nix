@@ -1,5 +1,5 @@
 { name
-, packagePrefix ? "systems.obsidian"
+, packagePrefix
 , nixpkgs
 , ghc
 , app
