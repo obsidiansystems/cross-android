@@ -56,16 +56,20 @@ JNIEXPORT jint JNICALL JNI_OnLoad ( JavaVM *vm, void *reserved ) {
   return JNI_VERSION_1_6;
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_focus_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jobject thisObject, jstring msg) {
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jobject thisObj, jstring msg) {
   const char *msg_str = (*env)->GetStringUTFChars(env, msg, NULL);
+  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "processMessage.GetStringUTFChars");
   (*(hsCallbacks->jsaddleResult))(msg_str);
+  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "processMessage.jsaddleResult");
   (*env)->ReleaseStringUTFChars(env, msg, msg_str);
+  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "processMessage.ReleaseStringUTFChars");
   return;
 }
 
 JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleWebViewClient_injectJSaddleCode (JNIEnv *env) {
   jstring js_str = (*env)->NewStringUTF(env, hsCallbacks->jsaddleJsData);
   (*env)->CallVoidMethod(env, javaCallback, evaluateJSCallback, js_str);
+  (*env)->DeleteLocalRef(env, js_str);
   return;
 }
 
@@ -82,13 +86,7 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_MainActivity_initJSaddle (JNI
   javaCallback = (*env)->NewGlobalRef(env, jsaddleObj);
   jclass cls = (*env)->GetObjectClass(env, javaCallback);
   evaluateJSCallback = (*env)->GetMethodID(env, cls, "evaluateJavascript", "(Ljava/lang/String;)V");
-  //  jmethodID loadHTMLStringCallback = (*env)->GetMethodID(env, cls, "loadHTMLString", "(Ljava/lang/String;)V");
-
   hsCallbacks = appMain (&evaluateJavascriptWrapper);
-
-  //  jstring html_str = (*env)->NewStringUTF(env, hsCallbacks->jsaddleHtmlData);
-  //  (*env)->CallVoidMethod(env, javaCallback, loadHTMLStringCallback, html_str);
-
   return;
 }
 
@@ -100,8 +98,13 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_MainActivity_startJSaddleProc
 void evaluateJavascriptWrapper (const char* js) {
   JNIEnv *env;
   jint rs = (*jvm)->AttachCurrentThread(jvm, &env, NULL);
+  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "evaluateJavascriptWrapper.AttachCurrentThread");
   assert (rs == JNI_OK);
   jstring js_str = (*env)->NewStringUTF(env, js);
+  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "evaluateJavascriptWrapper.NewStringUTF");
   (*env)->CallVoidMethod(env, javaCallback, evaluateJSCallback, js_str);
+  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "evaluateJavascriptWrapper.evaluateJSCallback");
+  (*env)->DeleteLocalRef(env, js_str);
+  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "evaluateJavascriptWrapper.NewStringUTF");
   return;
 }
