@@ -82,8 +82,12 @@ in stdenv.mkDerivation {
       --subst-var APPLIBNAME
 
     mkdir -p $out/assets
+    mkdir -p $out/res
     cp -RL "${staticSrc}"/*  "$out/assets/"
     cp -RL "${indexHtml}"    "$out/assets/index.html"
-    cp -RL "$out/assets/res" "$out/res"
+    cp -RL "$out/assets/assets/res/drawable-ldpi" "$out/res/"
+    cp -RL "$out/assets/assets/res/drawable-mdpi" "$out/res/"
+    cp -RL "$out/assets/assets/res/drawable-hdpi" "$out/res/"
+    cp -RL "$out/assets/assets/res/drawable-xhdpi" "$out/res/"
   '';
 }
