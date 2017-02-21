@@ -1,28 +1,28 @@
 { name
 , packagePrefix
 , nixpkgs
-, ghc
-, app
-, libiconv
-, abiVersion
+, appSOs # a map from arches to sos
 , assets
 , res
 }:
 
-let inherit (nixpkgs) stdenv;
+let inherit (nixpkgs) lib runCommand;
     appName = name;
     packageName = packagePrefix + "." + name;
     packageSrcDir = "src/" + builtins.replaceStrings ["."] ["/"] packageName;
     packageJNIName = builtins.replaceStrings ["."] ["_"] packageName;
     androidSdk = nixpkgs.androidenv.androidsdk_6_0_extras;
-in stdenv.mkDerivation {
-  inherit androidSdk ghc; # frontend;
-  name = "android-app";
+    abiVersions = lib.concatStringsSep " " (lib.attrNames appSOs);
+    plats = lib.attrNames appSOs;
+    stuff = lib.attrValues appSOs;
+    libiconvs = builtins.toString (builtins.map (s: s.libiconv) stuff);
+    hsApps = builtins.toString (builtins.map (s: s.hsApp) stuff);
+in runCommand "android-app" {
+  inherit androidSdk; # frontend;
   src = ./src;
   nativeBuildInputs = [ nixpkgs.rsync ];
-  builder = nixpkgs.writeText "builder.sh" ''
-    source "$stdenv/setup"
-
+  unpackPhase = "";
+} (''
     mkdir $out
 
     # copy build files and do substitutions
@@ -61,25 +61,37 @@ in stdenv.mkDerivation {
       --subst-var-by APPDISPLAYNAME "${appName}"
 
     cp -r --no-preserve=mode "$src/jni" $out
+
     substituteInPlace $out/jni/Application.mk \
-      --subst-var-by ABI_VER "${abiVersion}"
-    # sed -i 's|systems_obsidian_focus|'"${packageJNIName}"'|' "$out/jni/"*"."{c,h}
+      --subst-var-by ABI_VERS "${abiVersions}"
 
-    # move libiconv to the correct place
-    cp --no-preserve=mode "${libiconv}/lib/libiconv.so" $out/jni
-    cp --no-preserve=mode "${libiconv}/lib/libcharset.so" $out/jni
+  '' + lib.concatStrings (builtins.map (arch: let
+    inherit (appSOs.${arch}) libiconv hsApp;
+  in ''
+    {
+      ARCH_LIB=$out/lib/${arch}
+      mkdir -p $ARCH_LIB
 
-    # point to HS application shared object
-    APPLIBPATH=$(echo "${app}"/bin/*.so)
-    APPLIBNAME=$(basename $APPLIBPATH)
-    cp --no-preserve=mode $APPLIBPATH $out/jni/$APPLIBNAME
+      # Move libiconv (per arch) to the correct place
+      cp --no-preserve=mode "${libiconv}/lib/libiconv.so"   $ARCH_LIB
+      cp --no-preserve=mode "${libiconv}/lib/libcharset.so" $ARCH_LIB
 
+      # Point to HS application (per arch) shared object
+      APP_LIB_PATH=$(echo "${hsApp}"/bin/*.so)
+      APP_LIB_NAME=$(basename "$APP_LIB_PATH")
+      cp --no-preserve=mode "$APP_LIB_PATH" "$ARCH_LIB/$APP_LIB_NAME"
+
+      substituteInPlace $out/jni/Android.mk \
+        --subst-var-by APP_LIB_NAME "$APP_LIB_NAME"
+    }
+  '') plats) + ''
     substituteInPlace $out/jni/Android.mk \
-      --subst-var APPLIBNAME
+      --subst-var-by ICONV_PATH "" \
+      --subst-var-by CHARSET_PATH "" \
+      --subst-var-by APP_PATH ""
 
     rsync -r --chmod=+w "${assets}"/ "$out/assets/"
     rsync -r --chmod=+w "${res}"/ "$out/res/"
     [ -d "$out/assets" ]
     [ -d "$out/res" ]
-  '';
-}
+  '')

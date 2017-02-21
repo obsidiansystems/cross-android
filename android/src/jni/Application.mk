@@ -1,1 +1,1 @@
-APP_ABI := @ABI_VER@
+APP_ABI := @ABI_VERS@

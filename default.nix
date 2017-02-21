@@ -5,23 +5,59 @@
 
 rec {
   inherit (reflex-platform) nixpkgs;
-  inherit (nixpkgs) androidenv;
+  inherit (nixpkgs) lib androidenv;
   androidNdk = androidenv.androidndk;
   appSrc = ./hs;
 
-  arm64 = mkStuff {
-    nixpkgsAndroid = reflex-platform.nixpkgsCross.android.arm64Impure;
-    androidHaskellPackagesBase = reflex-platform.ghcAndroidArm64;
-    abiVersion = "arm64-v8a";
+  platforms = {
+    "arm64-v8a" = {
+      nixpkgsAndroid = reflex-platform.nixpkgsCross.android.arm64Impure;
+      androidHaskellPackagesBase = reflex-platform.ghcAndroidArm64;
+    };
+    "armeabi-v7a" = {
+      nixpkgsAndroid = reflex-platform.nixpkgsCross.android.armv7aImpure;
+      androidHaskellPackagesBase = reflex-platform.ghcAndroidArmv7a;
+    };
   };
 
-  armv7a = mkStuff {
-    nixpkgsAndroid = reflex-platform.nixpkgsCross.android.armv7aImpure;
-    androidHaskellPackagesBase = reflex-platform.ghcAndroidArmv7a;
-    abiVersion = "armeabi-v7a";
-  };
+  abiVersions = lib.concatStringsSep " " (lib.attrNames platforms);
 
-  mkStuff = { nixpkgsAndroid, androidHaskellPackagesBase, abiVersion }: rec {
+  cabalFile = nixpkgs.runCommand "${appName}.cabal" {} ''
+    cat > "$out" <<EOF
+    name: appName
+    version: 0.1.0.0
+    -- synopsis:
+    -- description:
+    license: MIT
+    -- license-file: LICENSE
+    -- author:
+    -- maintainer:
+    -- copyright:
+    -- category:
+    build-type: Simple
+    cabal-version: >=1.8
+
+    executable lib${appName}.so
+      build-depends: base
+                   , jsaddle
+                   , jsaddle-clib
+                   , reflex
+                   , reflex-dom-core
+                   , transformers
+      hs-source-dirs: src
+      ghc-options: -Rghc-timing -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog
+      main-is: App.hs
+      c-sources: cbits/focus.c
+      include-dirs: cbits/include
+      includes: jni.h
+      install-includes: cbits/include/focus.h
+      exposed-modules: App
+      cc-options: -shared -fPIC
+      ld-options: -shared
+    EOF
+  '';
+
+  appSOs = lib.mapAttrs (abiVersion: { nixpkgsAndroid, androidHaskellPackagesBase }: rec {
     inherit (nixpkgsAndroid.buildPackages) patchelf;
     inherit (nixpkgsAndroid) libiconv;
     androidHaskellPackages = androidHaskellPackagesBase.override {
@@ -38,40 +74,6 @@ rec {
         });
       };
     };
-    cabalFile = nixpkgs.runCommand "${appName}.cabal" {} ''
-      cat > "$out" <<EOF
-      name: appName
-      version: 0.1.0.0
-      -- synopsis:
-      -- description:
-      license: MIT
-      -- license-file: LICENSE
-      -- author:
-      -- maintainer:
-      -- copyright:
-      -- category:
-      build-type: Simple
-      cabal-version: >=1.8
-
-      executable lib${appName}.so
-        build-depends: base
-                     , jsaddle
-                     , jsaddle-clib
-                     , reflex
-                     , reflex-dom-core
-                     , transformers
-        hs-source-dirs: src
-        ghc-options: -Rghc-timing -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog
-        main-is: App.hs
-        c-sources: cbits/focus.c
-        include-dirs: cbits/include
-        includes: jni.h
-        install-includes: cbits/include/focus.h
-        exposed-modules: App
-        cc-options: -shared -fPIC
-        ld-options: -shared
-      EOF
-    '';
     hsApp = androidHaskellPackages.callPackage ({ mkDerivation, jsaddle, jsaddle-clib, reflex, reflex-dom-core }:
       mkDerivation (rec {
         pname = "app";
@@ -100,38 +102,39 @@ rec {
           patchelf --remove-rpath $SOPATH
         '';
     })) {};
-    androidSrc = import ./android {
-      inherit nixpkgs libiconv;
-      inherit (androidHaskellPackages) ghc;
-      name = appName;
-      app = hsApp;
-      packagePrefix = androidPackagePrefix;
-      inherit abiVersion;
-      assets = ./android/assets;
-      res    = ./android/res;
-    };
-    androidApp = nixpkgs.androidenv.buildApp {
-      name = appName;
-      src = androidSrc;
-      platformVersions = [ "23" ];
-      useGoogleAPIs = true;
-      inherit abiVersion;
-      useNDK = true;
-      release = true;
-      keyStore = ./keystore;
-      keyAlias = "focus";
-      keyStorePassword = "password";
-      keyAliasPassword = "password";
-    };
-    androidEmulate = nixpkgs.androidenv.emulateApp {
-      name = appName;
-      app = androidApp;
-      platformVersion = "23";
-      useGoogleAPIs = true;
-      inherit abiVersion;
-      enableGPU = true;
-      package = androidPackagePrefix + "." + appName;
-      activity = ".MainActivity";
-    };
+  }) platforms;
+
+  androidSrc = import ./android {
+    inherit nixpkgs;
+    name = appName;
+    inherit appSOs;
+    packagePrefix = androidPackagePrefix;
+    assets = ./android/assets;
+    res    = ./android/res;
+  };
+
+  androidApp = nixpkgs.androidenv.buildApp {
+    name = appName;
+    src = androidSrc;
+    platformVersions = [ "23" ];
+    useGoogleAPIs = true;
+    inherit abiVersions;
+    useNDK = true;
+    release = true;
+    keyStore = ./keystore;
+    keyAlias = "focus";
+    keyStorePassword = "password";
+    keyAliasPassword = "password";
+  };
+
+  androidEmulate = nixpkgs.androidenv.emulateApp {
+    name = appName;
+    app = androidApp;
+    platformVersion = "23";
+    useGoogleAPIs = true;
+    inherit abiVersions;
+    enableGPU = true;
+    package = androidPackagePrefix + "." + appName;
+    activity = ".MainActivity";
   };
 }
