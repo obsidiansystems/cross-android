@@ -2,6 +2,7 @@ package systems.obsidian.focus;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.webkit.CookieManager;
 import android.webkit.WebView;
 import android.webkit.WebSettings;
 import android.view.Window;
@@ -30,6 +31,7 @@ public class MainActivity extends Activity
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
+        CookieManager.setAcceptFileSchemeCookies(true);
         super.onCreate(savedInstanceState);
         // Remove title and notification bars, obv.
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
