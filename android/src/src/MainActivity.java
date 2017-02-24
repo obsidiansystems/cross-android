@@ -69,4 +69,9 @@ public class MainActivity extends Activity
           }
         }, 1000);
     }
+    @Override
+    public void onPause() {
+        CookieManager.getInstance().flush();
+        super.onPause();
+    }
 }
