@@ -25,7 +25,7 @@ int start_logger(const char *app_name) {
 
     /* make stdout line-buffered and stderr unbuffered */
     setvbuf(stdout, 0, _IOLBF, 0);
-    setvbuf(stderr, 0, _IONBF, 0);
+    setvbuf(stderr, 0, _IOLBF, 0);
 
     /* create the pipe and redirect stdout and stderr */
     pipe(pfd);
@@ -53,27 +53,7 @@ void *thread_func(void* unused)
 
 JNIEXPORT jint JNICALL JNI_OnLoad ( JavaVM *vm, void *reserved ) {
   jvm = vm;
-  return JNI_VERSION_1_6;
-}
 
-JNIEXPORT void JNICALL Java_systems_obsidian_focus_ProcessJSaddleMessage_processMessageShim (JNIEnv *env, jobject thisObj, jstring msg) {
-  const char *msg_str = (*env)->GetStringUTFChars(env, msg, NULL);
-  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "processMessage.GetStringUTFChars");
-  (*(hsCallbacks->jsaddleResult))(msg_str);
-  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "processMessage.jsaddleResult");
-  (*env)->ReleaseStringUTFChars(env, msg, msg_str);
-  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "processMessage.ReleaseStringUTFChars");
-  return;
-}
-
-JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleWebViewClient_injectJSaddleCode (JNIEnv *env) {
-  jstring js_str = (*env)->NewStringUTF(env, hsCallbacks->jsaddleJsData);
-  (*env)->CallVoidMethod(env, javaCallback, evaluateJSCallback, js_str);
-  (*env)->DeleteLocalRef(env, js_str);
-  return;
-}
-
-JNIEXPORT void JNICALL Java_systems_obsidian_focus_MainActivity_initJSaddle (JNIEnv *env, jobject thisObj, jobject jsaddleObj) {
   start_logger("JSADDLEC");
 
   static int argc = 5;
@@ -83,6 +63,29 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_MainActivity_initJSaddle (JNI
 
   hs_add_root (__stginit_Mobile);
 
+  return JNI_VERSION_1_6;
+}
+
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_deinit ( JNIEnv *env, jobject thisObj ) {
+  hs_exit();
+}
+
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_processMessage (JNIEnv *env, jobject thisObj, jstring msg) {
+  const char *msg_str = (*env)->GetStringUTFChars(env, msg, NULL);
+  (*(hsCallbacks->jsaddleResult))(msg_str);
+  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLE", "processMessage.jsaddleResult");
+  (*env)->ReleaseStringUTFChars(env, msg, msg_str);
+  return;
+}
+
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_injectJavascript (JNIEnv *env) {
+  jstring js_str = (*env)->NewStringUTF(env, hsCallbacks->jsaddleJsData);
+  (*env)->CallVoidMethod(env, javaCallback, evaluateJSCallback, js_str);
+  (*env)->DeleteLocalRef(env, js_str);
+  return;
+}
+
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_init (JNIEnv *env, jobject jsaddleObj) {
   javaCallback = (*env)->NewGlobalRef(env, jsaddleObj);
   jclass cls = (*env)->GetObjectClass(env, javaCallback);
   evaluateJSCallback = (*env)->GetMethodID(env, cls, "evaluateJavascript", "(Ljava/lang/String;)V");
@@ -90,21 +93,20 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_MainActivity_initJSaddle (JNI
   return;
 }
 
-JNIEXPORT void JNICALL Java_systems_obsidian_focus_MainActivity_startJSaddleProcessing (JNIEnv *env) {
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_startProcessing (JNIEnv *env) {
   (*(hsCallbacks->jsaddleStart))();
   return;
 }
 
 void evaluateJavascriptWrapper (const char* js) {
   JNIEnv *env;
-  jint rs = (*jvm)->AttachCurrentThread(jvm, &env, NULL);
-  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "evaluateJavascriptWrapper.AttachCurrentThread");
-  assert (rs == JNI_OK);
+  jint attachResult = (*jvm)->AttachCurrentThread(jvm, &env, NULL);
+  assert (attachResult == JNI_OK);
   jstring js_str = (*env)->NewStringUTF(env, js);
-  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "evaluateJavascriptWrapper.NewStringUTF");
   (*env)->CallVoidMethod(env, javaCallback, evaluateJSCallback, js_str);
   __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "evaluateJavascriptWrapper.evaluateJSCallback");
   (*env)->DeleteLocalRef(env, js_str);
-  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "evaluateJavascriptWrapper.NewStringUTF");
+  jint detachResult = (*jvm) -> DetachCurrentThread(jvm);
+  assert (detachResult == JNI_OK);
   return;
 }

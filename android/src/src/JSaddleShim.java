@@ -2,38 +2,57 @@ package systems.obsidian.focus;
 
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
+import android.os.Handler;
 
 import android.util.Log;
 
 public class JSaddleShim {
   private WebView wv;
+  private Handler hnd;
+  private native void startProcessing();
+  private native void processMessage(String msg);
 
-  public JSaddleShim ( WebView n_wv ) {
-    wv = n_wv;
+  public native void init();
+  public native void deinit();
+  public native void injectJavascript();
+
+  public JSaddleShim(WebView _wv, Handler _hnd) {
+    wv = _wv;
+    hnd = _hnd;
   }
 
-  public void loadHTMLString ( String html ) {
-    wv.loadData(html, "text/html; charset=utf-8", "UTF-8");
-  }
-
-  public void evaluateJavascript ( String javascript ) {
-    new JSaddleEvaluateJavascript(wv).execute(javascript);
-  }
-
-  public void evaluateJavascriptSync ( String javascript ) {
-    new JSaddleEvaluateJavascriptSync(wv).execute(javascript);
+  public void evaluateJavascript(final String js) {
+    hnd.post(new Runnable() {
+      @Override
+      public void run() {
+        Log.d("JSADDLE", js);
+        wv.evaluateJavascript (js, null);
+      }
+    });
   }
 
   @JavascriptInterface
-  public boolean postMessage ( String msg ) {
-    Log.v("JSADDLE", "###callingPostMessage");
-    new ProcessJSaddleMessage().execute(msg);
+  public boolean postMessage(final String msg) {
+    hnd.post(new Runnable() {
+      @Override
+      public void run() {
+        Log.d("JSADDLE", msg);
+        processMessage(msg);
+      }
+    });
     return true;
   }
 
-  public void startHandler () {
-    Log.v("JSADDLE", "###callingStartHandler");
-    new JSaddleStart().execute();
+  @JavascriptInterface
+  public boolean postReady() {
+    hnd.post(new Runnable() {
+      @Override
+      public void run() {
+        Log.d("JSADDLE", "###startProcessing");
+        startProcessing();
+      }
+    });
+    return true;
   }
 
 }

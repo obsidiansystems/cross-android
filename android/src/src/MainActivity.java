@@ -10,21 +10,18 @@ import android.view.WindowManager;
 import android.os.SystemClock;
 import android.util.Log;
 import android.os.Handler;
+import android.os.Process;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends Activity
 {
+    private JSaddleShim jsaddle;
 
     static {
         System.loadLibrary("@APPNAME@");
     }
-    /** Called when the activity is first created. */
-
-    private native void initJSaddle (JSaddleShim callbackObj);
-    private native void startJSaddleProcessing ();
-    private native void haskellYield ();
 
     private static final String TAG = "JSADDLE";
 
@@ -46,32 +43,37 @@ public class MainActivity extends Activity
         ws.setAllowFileAccessFromFileURLs(true); //Maybe you don't need this rule
         ws.setAllowUniversalAccessFromFileURLs(true);
         wv.setWebContentsDebuggingEnabled(true);
-        // init an object managing the JSaddleShim
-        JSaddleShim jsaddle = new JSaddleShim(wv);
-        // create and set a web view client aware of the JSaddleShim
-        JSaddleWebViewClient wv_client = new JSaddleWebViewClient();
-        wv.setWebViewClient(wv_client);
+        // init an object mediating the interaction with JSaddle
+        final Handler hnd = new Handler();
+        jsaddle = new JSaddleShim(wv, hnd);
+        // create and set a web view client aware of the JSaddle
+        wv.setWebViewClient(new JSaddleWebViewClient(jsaddle));
+        // create and set a web chrome client for console message handling
+        wv.setWebChromeClient(new JSaddleWebChromeClient());
         // register jsaddle javascript interface
         wv.addJavascriptInterface(jsaddle, "jsaddle");
         // tell C about the shim so that it can spin up Haskell and connect the two
-        Log.v(TAG, "###jsaddle");
-        initJSaddle(jsaddle);
-        Log.v(TAG, "###loadhtml");
+        Log.d(TAG, "###jsaddle");
+        jsaddle.init();
+        Log.d(TAG, "###loadhtml");
         wv.loadUrl("file:///android_asset/index.html");
-
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-          @Override
-          public void run() {
-            // prepare the page and signal to Haskell that we are ready to start running JSaddle onPageFinished
-            startJSaddleProcessing();
-            Log.v("JSADDLE", "###startHandlerCalled");
-          }
-        }, 1000);
     }
     @Override
     public void onPause() {
-        CookieManager.getInstance().flush();
+        Log.d(TAG, "!!!PAUSE");
         super.onPause();
+    }
+    @Override
+    public void onStop() {
+        Log.d(TAG, "!!!STOP");
+        CookieManager.getInstance().flush();
+        super.onStop();
+    }
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "!!!DESTROY");
+        // jsaddle.deinit(); crashes because we're not deinit'ing native threads correctly
+        super.onDestroy();
+        android.os.Process.killProcess(android.os.Process.myPid()); //TODO: Properly handle the process surviving between invocations which means that the Haskell RTS needs to not be initialized twice.
     }
 }

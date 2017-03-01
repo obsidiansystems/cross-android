@@ -15,8 +15,10 @@ let inherit (nixpkgs) stdenv;
     packageJNIName = builtins.replaceStrings ["."] ["_"] packageName;
     androidSdk = nixpkgs.androidenv.androidsdk_6_0_extras;
     indexHtml = builtins.toFile "index.html" ''
+      <!DOCTYPE html>
       <html>
         <head>
+        <title>JSaddle</title>
         </head>
         <body>
         </body>

@@ -8,20 +8,11 @@ import android.net.Uri;
 import android.util.Log;
 
 public class JSaddleWebViewClient extends WebViewClient {
-  private boolean hasInjectedJSaddle;
+  private JSaddleShim jsaddle;
 
-  private native void injectJSaddleCode ();
-  private native void startJSaddleProcessing ();
-
-  public JSaddleWebViewClient () {
+  public JSaddleWebViewClient(JSaddleShim _jsaddle) {
     super();
-    hasInjectedJSaddle = false;
-  }
-
-  public boolean onConsoleMessage(ConsoleMessage cm)
-  {
-      Log.v("JSADDLEJS", String.format("%s @ %d: %s", cm.message(), cm.lineNumber(), cm.sourceId()));
-      return true;
+    jsaddle = _jsaddle;
   }
 
   @Override
@@ -35,11 +26,7 @@ public class JSaddleWebViewClient extends WebViewClient {
     return true;
   }
 
-  public void onPageFinished (WebView view, String url) {
-    if(!hasInjectedJSaddle) {
-      injectJSaddleCode();
-      Log.v("JSADDLE", "###jsaddleCodeInjected");
-      hasInjectedJSaddle = true;
-    }
+  public void onPageFinished(WebView view, String url) {
+    jsaddle.injectJavascript();
   }
 }
