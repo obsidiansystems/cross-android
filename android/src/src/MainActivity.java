@@ -1,5 +1,6 @@
 package systems.obsidian.focus;
 
+import android.content.Intent;
 import android.app.Activity;
 import android.os.Bundle;
 import android.webkit.CookieManager;
@@ -15,15 +16,22 @@ import android.os.Process;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends Activity
-{
+import android.webkit.ConsoleMessage;
+import android.webkit.WebChromeClient;
+import android.util.Log;
+import android.webkit.ValueCallback;
+import android.net.Uri;
+
+public class MainActivity extends Activity {
     private JSaddleShim jsaddle;
+    private ValueCallback<Uri[]> fileUploadCallback;
 
     static {
         System.loadLibrary("@APPNAME@");
     }
 
     private static final String TAG = "JSADDLE";
+    private static final int REQUEST_CODE_FILE_PICKER = 51426;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -75,5 +83,77 @@ public class MainActivity extends Activity
         // jsaddle.deinit(); crashes because we're not deinit'ing native threads correctly
         super.onDestroy();
         android.os.Process.killProcess(android.os.Process.myPid()); //TODO: Properly handle the process surviving between invocations which means that the Haskell RTS needs to not be initialized twice.
+    }
+
+    // File uploads don't work out of the box.
+    // You have to start an 'Intent' from 'onShowFileChooser', and handle the result here.
+    @Override
+    public void onActivityResult(final int requestCode, final int resultCode, final Intent intent) {
+        if (requestCode == REQUEST_CODE_FILE_PICKER) {
+            if (resultCode == Activity.RESULT_OK) {
+                if (intent != null) {
+                    if (fileUploadCallback != null) {
+                        Uri[] dataUris = null;
+                        
+                        try {
+                            if (intent.getDataString() != null) {
+                                dataUris = new Uri[] { Uri.parse(intent.getDataString()) };
+                            }
+                            else {
+				if (intent.getClipData() != null) {
+				    final int numSelectedFiles = intent.getClipData().getItemCount();
+                                        
+				    dataUris = new Uri[numSelectedFiles];
+                                        
+				    for (int i = 0; i < numSelectedFiles; i++) {
+					dataUris[i] = intent.getClipData().getItemAt(i).getUri();
+				    }
+				}
+                            }
+                        }
+                        catch (Exception ignored) { }
+                        
+                        fileUploadCallback.onReceiveValue(dataUris);
+                        fileUploadCallback = null;
+                    }
+                }
+            }
+            else if (fileUploadCallback != null) {
+		fileUploadCallback.onReceiveValue(null);
+		fileUploadCallback = null;
+            }
+        }
+    }
+
+    private class JSaddleWebChromeClient extends WebChromeClient {
+	@Override
+	public boolean onConsoleMessage(ConsoleMessage cm) {
+	    Log.d("JSADDLEJS", String.format("%s @ %d: %s", cm.message(), cm.lineNumber(), cm.sourceId()));
+	    return true;
+	}
+
+	// file upload callback (Android 5.0 (API level 21) -- current)
+	@Override
+        public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
+	    final boolean allowMultiple = fileChooserParams.getMode() == FileChooserParams.MODE_OPEN_MULTIPLE;
+
+	    if (fileUploadCallback != null) {
+		fileUploadCallback.onReceiveValue(null);
+	    }
+	    fileUploadCallback = filePathCallback;
+
+	    Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+	    i.addCategory(Intent.CATEGORY_OPENABLE);
+	
+	    if (allowMultiple) {
+		i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+	    }
+
+	    i.setType("*/*");
+
+	    startActivityForResult(Intent.createChooser(i, "Choose a File"), REQUEST_CODE_FILE_PICKER);
+
+	    return true;
+	}
     }
 }
