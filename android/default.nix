@@ -5,7 +5,8 @@
 , app
 , libiconv
 , abiVersion
-, staticSrc
+, assets
+, res
 }:
 
 let inherit (nixpkgs) stdenv;
@@ -14,20 +15,11 @@ let inherit (nixpkgs) stdenv;
     packageSrcDir = "src/" + builtins.replaceStrings ["."] ["/"] packageName;
     packageJNIName = builtins.replaceStrings ["."] ["_"] packageName;
     androidSdk = nixpkgs.androidenv.androidsdk_6_0_extras;
-    indexHtml = builtins.toFile "index.html" ''
-      <!DOCTYPE html>
-      <html>
-        <head>
-        <title>JSaddle</title>
-        </head>
-        <body>
-        </body>
-      </html>
-    '';
 in stdenv.mkDerivation {
   inherit androidSdk ghc; # frontend;
   name = "android-app";
   src = ./src;
+  nativeBuildInputs = [ nixpkgs.rsync ];
   builder = nixpkgs.writeText "builder.sh" ''
     source "$stdenv/setup"
 
@@ -62,6 +54,8 @@ in stdenv.mkDerivation {
     substituteInPlace "$out/${packageSrcDir}/MainActivity.java" \
       --subst-var-by APPNAME "${appName}"
 
+    cp -r --no-preserve=mode "$src/assets" $out
+
     cp -r --no-preserve=mode "$src/res" $out
     substituteInPlace "$out/res/values/strings.xml" \
       --subst-var-by APPDISPLAYNAME "${appName}"
@@ -83,13 +77,9 @@ in stdenv.mkDerivation {
     substituteInPlace $out/jni/Android.mk \
       --subst-var APPLIBNAME
 
-    mkdir -p $out/assets
-    mkdir -p $out/res
-    cp -RL "${staticSrc}"/*  "$out/assets/"
-    cp -RL "${indexHtml}"    "$out/assets/index.html"
-    cp -RL "$out/assets/assets/res/drawable-ldpi" "$out/res/"
-    cp -RL "$out/assets/assets/res/drawable-mdpi" "$out/res/"
-    cp -RL "$out/assets/assets/res/drawable-hdpi" "$out/res/"
-    cp -RL "$out/assets/assets/res/drawable-xhdpi" "$out/res/"
+    rsync -r --chmod=+w "${assets}"/ "$out/assets/"
+    rsync -r --chmod=+w "${res}"/ "$out/res/"
+    [ -d "$out/assets" ]
+    [ -d "$out/res" ]
   '';
 }

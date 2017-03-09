@@ -107,6 +107,8 @@ rec {
       app = hsApp;
       packagePrefix = androidPackagePrefix;
       inherit abiVersion;
+      assets = ./android/assets;
+      res    = ./android/res;
     };
     androidApp = nixpkgs.androidenv.buildApp {
       name = appName;
