@@ -116,7 +116,7 @@ rec {
   androidApp = nixpkgs.androidenv.buildApp {
     name = appName;
     src = androidSrc;
-    platformVersions = [ "21" ];
+    platformVersions = [ "23" ];
     useGoogleAPIs = true;
     inherit abiVersions;
     useNDK = true;
@@ -130,7 +130,7 @@ rec {
   androidEmulate = nixpkgs.androidenv.emulateApp {
     name = appName;
     app = androidApp;
-    platformVersion = "21";
+    platformVersion = "23";
     useGoogleAPIs = true;
     inherit abiVersions;
     enableGPU = true;
