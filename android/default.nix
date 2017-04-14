@@ -46,8 +46,8 @@ in runCommand "android-app" {
 
     cp $src/AndroidManifest.xml $out
     substituteInPlace $out/AndroidManifest.xml \
-      --subst-var-by PACKAGENAME "${packageName} \
-      --subst-var-by VERSIONCODE "${versionCode} \
+      --subst-var-by PACKAGENAME "${packageName}" \
+      --subst-var-by VERSIONCODE "${versionCode}" \
       --subst-var-by VERSIONNAME "${versionName}"
 
     # copy the template project, and then put the src in the right place
