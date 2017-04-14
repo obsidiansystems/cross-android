@@ -4,6 +4,8 @@
 , appSOs # a map from arches to sos
 , assets
 , res
+, versionCode ? "1"
+, versionName ? "1.0" # Visible to end users
 }:
 
 let inherit (nixpkgs) lib runCommand;
@@ -44,7 +46,9 @@ in runCommand "android-app" {
 
     cp $src/AndroidManifest.xml $out
     substituteInPlace $out/AndroidManifest.xml \
-      --subst-var-by PACKAGENAME "${packageName}"
+      --subst-var-by PACKAGENAME "${packageName} \
+      --subst-var-by VERSIONCODE "${versionCode} \
+      --subst-var-by VERSIONNAME "${versionName}"
 
     # copy the template project, and then put the src in the right place
     mkdir -p "$out/${packageSrcDir}"
