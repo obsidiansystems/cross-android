@@ -51,6 +51,8 @@ public class MainActivity extends Activity {
         ws.setAllowFileAccessFromFileURLs(true); //Maybe you don't need this rule
         ws.setAllowUniversalAccessFromFileURLs(true);
         wv.setWebContentsDebuggingEnabled(true);
+        // allow video to play without user interaction
+        wv.getSettings().setMediaPlaybackRequiresUserGesture(false);
         // init an object mediating the interaction with JSaddle
         final Handler hnd = new Handler();
         jsaddle = new JSaddleShim(wv, hnd);
