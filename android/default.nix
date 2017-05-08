@@ -6,6 +6,8 @@
 , res
 , versionCode ? "1"
 , versionName ? "1.0" # Visible to end users
+, intentFilters ? "" # Manifest XML for additional intent filters
+, permissions ? "" # Manifest XML for additional permissions
 }:
 
 let inherit (nixpkgs) lib runCommand;
@@ -48,7 +50,9 @@ in runCommand "android-app" {
     substituteInPlace $out/AndroidManifest.xml \
       --subst-var-by PACKAGENAME "${packageName}" \
       --subst-var-by VERSIONCODE "${versionCode}" \
-      --subst-var-by VERSIONNAME "${versionName}"
+      --subst-var-by VERSIONNAME "${versionName}" \
+      --subst-var-by INTENTFILTERS "${intentFilters}" \
+      --subst-var-by PERMISSIONS "${permissions}"
 
     # copy the template project, and then put the src in the right place
     mkdir -p "$out/${packageSrcDir}"

@@ -1,26 +1,31 @@
 package systems.obsidian.focus;
 
-import android.content.Intent;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.app.Activity;
+import android.app.DownloadManager.Request;
+import android.app.DownloadManager;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.webkit.CookieManager;
-import android.webkit.WebView;
-import android.webkit.WebSettings;
-import android.view.Window;
-import android.view.WindowManager;
-import android.os.SystemClock;
-import android.util.Log;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Process;
-
+import android.os.SystemClock;
+import android.util.Log;
+import android.util.Log;
+import android.view.Window;
+import android.view.WindowManager;
+import android.webkit.ConsoleMessage;
+import android.webkit.CookieManager;
+import android.webkit.DownloadListener;
+import android.webkit.URLUtil;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import android.webkit.ConsoleMessage;
-import android.webkit.WebChromeClient;
-import android.util.Log;
-import android.webkit.ValueCallback;
-import android.net.Uri;
 
 public class MainActivity extends Activity {
     private JSaddleShim jsaddle;
@@ -53,6 +58,20 @@ public class MainActivity extends Activity {
         wv.setWebContentsDebuggingEnabled(true);
         // allow video to play without user interaction
         wv.getSettings().setMediaPlaybackRequiresUserGesture(false);
+        // Obtain permission to store downloaded files.
+        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        }
+        // Set a handler for download links
+        wv.setDownloadListener(new DownloadListener() {
+            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
+                Request request = new Request(Uri.parse(url));
+                request.allowScanningByMediaScanner();
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype)); 
+                DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                dm.enqueue(request);
+            }});
         // init an object mediating the interaction with JSaddle
         final Handler hnd = new Handler();
         jsaddle = new JSaddleShim(wv, hnd);
