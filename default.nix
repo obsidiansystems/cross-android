@@ -113,14 +113,15 @@ rec {
     res    = ./android/res;
   };
 
-  androidApp = nixpkgs.androidenv.buildApp {
+  androidApp = nixpkgs.androidenv.buildGradleApp {
     name = appName;
     src = androidSrc;
-    platformVersions = [ "23" ];
+    platformVersions = [ "25" ];
     useGoogleAPIs = true;
-    inherit abiVersions;
+    useExtraSupportLibs = true;
     useNDK = true;
     release = true;
+    inherit abiVersions;
     keyStore = ./keystore;
     keyAlias = "focus";
     keyStorePassword = "password";

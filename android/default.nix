@@ -8,12 +8,13 @@
 , versionName ? "1.0" # Visible to end users
 , intentFilters ? "" # Manifest XML for additional intent filters
 , permissions ? "" # Manifest XML for additional permissions
+, googleServicesJson ? null
 }:
 
 let inherit (nixpkgs) lib runCommand;
     appName = name;
     packageName = packagePrefix + "." + name;
-    packageSrcDir = "src/" + builtins.replaceStrings ["."] ["/"] packageName;
+    packageSrcDir = "src/main/java/" + builtins.replaceStrings ["."] ["/"] packageName;
     packageJNIName = builtins.replaceStrings ["."] ["_"] packageName;
     androidSdk = nixpkgs.androidenv.androidsdk_6_0_extras;
     abiVersions = lib.concatStringsSep " " (lib.attrNames appSOs);
@@ -31,6 +32,12 @@ in runCommand "android-app" {
 
     # copy build files and do substitutions
     cp $src/project.properties $out
+
+    cp $src/build.gradle $out
+    substituteInPlace $out/build.gradle \
+      --subst-var-by APPLICATION_ID "${packageName}"
+
+    ${lib.optionalString (googleServicesJson != null) "cp ${googleServicesJson} $out/google-services.json"}
 
     cp $src/local.properties $out
     substituteInPlace $out/local.properties \
