@@ -1,16 +1,10 @@
 #ifndef _INCLUDE_FOCUS_H_
 #define _INCLUDE_FOCUS_H_
-
-typedef struct native_callbacks {
-  void (* jsaddleStart) ();
-  void (* jsaddleResult) (const char *);
-  const char * jsaddleJsData;
-  const char * jsaddleHtmlData;
-} native_callbacks;
+#include "jsaddle.h"
 
 void __stginit_Mobile (void);
 
-native_callbacks* appMain (void (* evaluateJs) (const char*));
+native_callbacks* appMain (void (* evaluateJs) (const char*), app_callbacks* hsAppCallbacks);
 
 int start_logger(const char *app_name);
 

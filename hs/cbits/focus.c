@@ -13,6 +13,7 @@ static native_callbacks* hsCallbacks = NULL;
 static JavaVM* jvm = NULL;
 static jobject javaCallback = NULL;
 static jmethodID evaluateJSCallback = NULL;
+static app_callbacks hsAppCallbacks = { NULL };
 
 static int pfd[2];
 static pthread_t thr;
@@ -70,6 +71,12 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_deinit ( JNIEnv *
   hs_exit();
 }
 
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_LocalFirebaseInstanceIDService_handleDeviceToken ( JNIEnv *env, jobject thisObj, jstring token ) {
+  if(hsAppCallbacks.firebaseInstanceIdService_sendRegistrationToServer) {
+    hsAppCallbacks.firebaseInstanceIdService_sendRegistrationToServer(token);
+  }
+}
+
 JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_processMessage (JNIEnv *env, jobject thisObj, jstring msg) {
   const char *msg_str = (*env)->GetStringUTFChars(env, msg, NULL);
   (*(hsCallbacks->jsaddleResult))(msg_str);
@@ -89,7 +96,7 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_init (JNIEnv *env
   javaCallback = (*env)->NewGlobalRef(env, jsaddleObj);
   jclass cls = (*env)->GetObjectClass(env, javaCallback);
   evaluateJSCallback = (*env)->GetMethodID(env, cls, "evaluateJavascript", "(Ljava/lang/String;)V");
-  hsCallbacks = appMain (&evaluateJavascriptWrapper);
+  hsCallbacks = appMain(&evaluateJavascriptWrapper, &hsAppCallbacks);
   return;
 }
 

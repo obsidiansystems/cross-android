@@ -16,6 +16,11 @@
             </intent-filter>
             @INTENTFILTERS@ 
         </activity>
+        <service android:name=".LocalFirebaseInstanceIDService">
+          <intent-filter>
+            <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+          </intent-filter>
+        </service>
     </application>
     <uses-sdk android:minSdkVersion="25" />
     <uses-permission android:name="android.permission.INTERNET" />
