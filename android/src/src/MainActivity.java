@@ -56,6 +56,9 @@ public class MainActivity extends Activity {
         ws.setAllowFileAccessFromFileURLs(true); //Maybe you don't need this rule
         ws.setAllowUniversalAccessFromFileURLs(true);
         wv.setWebContentsDebuggingEnabled(true);
+        Intent intent = getIntent();
+        Uri data = intent.getData();
+
         // allow video to play without user interaction
         wv.getSettings().setMediaPlaybackRequiresUserGesture(false);
         // Obtain permission to store downloaded files.
@@ -85,7 +88,11 @@ public class MainActivity extends Activity {
         Log.d(TAG, "###jsaddle");
         jsaddle.init();
         Log.d(TAG, "###loadhtml");
-        wv.loadUrl("file:///android_asset/index.html");
+        if (data == null) {
+            wv.loadUrl("file:///android_asset/index.html");
+        } else {
+            wv.loadUrl(Uri.parse("file:///android_asset/index.html").buildUpon().encodedQuery(data.getEncodedQuery()).appendQueryParameter("href",data.toString()).toString());
+        }
     }
     @Override
     public void onPause() {
