@@ -105,6 +105,55 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_startProcessing (
   return;
 }
 
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_AppCallbacksShim_mainActivityOnCreate (JNIEnv *env) {
+  if(hsAppCallbacks.mainActivity_onCreate) {
+    hsAppCallbacks.mainActivity_onCreate();
+  }
+  return;
+}
+
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_AppCallbacksShim_mainActivityOnStart (JNIEnv *env) {
+  if(hsAppCallbacks.mainActivity_onStart) {
+    hsAppCallbacks.mainActivity_onStart();
+  }
+  return;
+}
+
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_AppCallbacksShim_mainActivityOnResume (JNIEnv *env) {
+  if(hsAppCallbacks.mainActivity_onResume) {
+    hsAppCallbacks.mainActivity_onResume();
+  }
+  return;
+}
+
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_AppCallbacksShim_mainActivityOnPause (JNIEnv *env) {
+  if(hsAppCallbacks.mainActivity_onPause) {
+    hsAppCallbacks.mainActivity_onPause();
+  }
+  return;
+}
+
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_AppCallbacksShim_mainActivityOnStop (JNIEnv *env) {
+  if(hsAppCallbacks.mainActivity_onStop) {
+    hsAppCallbacks.mainActivity_onStop();
+  }
+  return;
+}
+
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_AppCallbacksShim_mainActivityOnDestroy (JNIEnv *env) {
+  if(hsAppCallbacks.mainActivity_onDestroy) {
+    hsAppCallbacks.mainActivity_onDestroy();
+  }
+  return;
+}
+
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_AppCallbacksShim_mainActivityOnRestart (JNIEnv *env) {
+  if(hsAppCallbacks.mainActivity_onRestart) {
+    hsAppCallbacks.mainActivity_onRestart();
+  }
+  return;
+}
+
 void evaluateJavascriptWrapper (const char* js) {
   JNIEnv *env;
   jint attachResult = (*jvm)->AttachCurrentThread(jvm, &env, NULL);

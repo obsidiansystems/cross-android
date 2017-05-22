@@ -30,6 +30,7 @@ import java.util.TimerTask;
 public class MainActivity extends Activity {
     private JSaddleShim jsaddle;
     private ValueCallback<Uri[]> fileUploadCallback;
+    private AppCallbacksShim appCallbacks;
 
     static {
         System.loadLibrary("@APPNAME@");
@@ -78,6 +79,8 @@ public class MainActivity extends Activity {
         // init an object mediating the interaction with JSaddle
         final Handler hnd = new Handler();
         jsaddle = new JSaddleShim(wv, hnd);
+        // initialize the application callbacks object
+        appCallbacks = new AppCallbacksShim();
         // create and set a web view client aware of the JSaddle
         wv.setWebViewClient(new JSaddleWebViewClient(jsaddle));
         // create and set a web chrome client for console message handling
@@ -93,24 +96,44 @@ public class MainActivity extends Activity {
         } else {
             wv.loadUrl(Uri.parse("file:///android_asset/index.html").buildUpon().encodedQuery(data.getEncodedQuery()).appendQueryParameter("href",data.toString()).toString());
         }
+        appCallbacks.mainActivityOnCreate();
+    }
+
+    @Override
+    public void onStart() {
+      super.onStart();
+      appCallbacks.mainActivityOnStart();
+    }
+    @Override
+    public void onResume() {
+      super.onResume();
+      appCallbacks.mainActivityOnResume();
     }
     @Override
     public void onPause() {
         Log.d(TAG, "!!!PAUSE");
         super.onPause();
+        appCallbacks.mainActivityOnPause();
     }
     @Override
     public void onStop() {
         Log.d(TAG, "!!!STOP");
         CookieManager.getInstance().flush();
         super.onStop();
+        appCallbacks.mainActivityOnStop();
     }
     @Override
     public void onDestroy() {
         Log.d(TAG, "!!!DESTROY");
         // jsaddle.deinit(); crashes because we're not deinit'ing native threads correctly
         super.onDestroy();
+        appCallbacks.mainActivityOnDestroy();
         android.os.Process.killProcess(android.os.Process.myPid()); //TODO: Properly handle the process surviving between invocations which means that the Haskell RTS needs to not be initialized twice.
+    }
+    @Override
+    public void onRestart() {
+      super.onRestart();
+      appCallbacks.mainActivityOnRestart();
     }
 
     // File uploads don't work out of the box.
