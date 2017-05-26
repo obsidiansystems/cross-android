@@ -32,6 +32,7 @@ in runCommand "android-app" {
 
     # copy build files and do substitutions
     cp $src/project.properties $out
+    cp $src/gradle.properties $out
 
     cp $src/build.gradle $out
     substituteInPlace $out/build.gradle \
