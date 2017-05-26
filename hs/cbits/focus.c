@@ -73,8 +73,11 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_deinit ( JNIEnv *
 
 JNIEXPORT void JNICALL Java_systems_obsidian_focus_LocalFirebaseInstanceIDService_handleDeviceToken ( JNIEnv *env, jobject thisObj, jstring token ) {
   if(hsAppCallbacks.firebaseInstanceIdService_sendRegistrationToServer) {
-    hsAppCallbacks.firebaseInstanceIdService_sendRegistrationToServer(token);
+    const char *cstring_token = (*env)->GetStringUTFChars(env, token, 0);
+    hsAppCallbacks.firebaseInstanceIdService_sendRegistrationToServer(cstring_token);
+    (*env)->ReleaseStringUTFChars(env, token, cstring_token);
   }
+  return;
 }
 
 JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_processMessage (JNIEnv *env, jobject thisObj, jstring msg) {
