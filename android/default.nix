@@ -9,6 +9,10 @@
 , intentFilters ? "" # Manifest XML for additional intent filters
 , permissions ? "" # Manifest XML for additional permissions
 , googleServicesJson ? null
+, additionalDependencies ? ""
+, iconResource ? "@mipmap/ic_launcher"
+, services ? "" # Manifest XML for additional services
+, includeFirebase ? false
 }:
 
 let inherit (nixpkgs) lib runCommand;
@@ -36,7 +40,10 @@ in runCommand "android-app" {
 
     cp $src/build.gradle $out
     substituteInPlace $out/build.gradle \
-      --subst-var-by APPLICATION_ID "${packageName}"
+      --subst-var-by APPLICATION_ID "${packageName}" \
+      --subst-var-by GOOGLE_SERVICES_CLASSPATH "${if googleServicesJson != null then "classpath 'com.google.gms:google-services:3.0.0'" else "" }" \
+      --subst-var-by GOOGLE_SERVICES_PLUGIN "${if googleServicesJson != null then "apply plugin: 'com.google.gms.google-services'" else "" }" \
+      --subst-var-by ADDITIONAL_DEPENDENCIES "${additionalDependencies}"
 
     ${lib.optionalString (googleServicesJson != null) "cp ${googleServicesJson} $out/google-services.json"}
 
@@ -60,11 +67,15 @@ in runCommand "android-app" {
       --subst-var-by VERSIONCODE "${versionCode}" \
       --subst-var-by VERSIONNAME "${versionName}" \
       --subst-var-by INTENTFILTERS "${intentFilters}" \
-      --subst-var-by PERMISSIONS "${permissions}"
+      --subst-var-by SERVICES "${services}" \
+      --subst-var-by PERMISSIONS "${permissions}" \
+      --subst-var-by ICONRESOURCE "${iconResource}"
 
     # copy the template project, and then put the src in the right place
     mkdir -p "$out/${packageSrcDir}"
     cp -r --no-preserve=mode "$src/src/." "$out/${packageSrcDir}"
+
+    ${if includeFirebase then "" else "rm $out/${packageSrcDir}/LocalFirebaseInstanceIDService.java"}
     sed -i 's|package systems.obsidian.focus;|package '"${packageName}"\;'|' "$out/${packageSrcDir}/"*".java"
 
     substituteInPlace "$out/${packageSrcDir}/MainActivity.java" \
