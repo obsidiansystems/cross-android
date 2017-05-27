@@ -88,6 +88,16 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_processMessage (J
   return;
 }
 
+JNIEXPORT jstring JNICALL Java_systems_obsidian_focus_JSaddleShim_processSyncMessage (JNIEnv *env, jobject thisObj, jstring msg) {
+  const char *msg_str = (*env)->GetStringUTFChars(env, msg, NULL);
+  char *next_str = (*(hsCallbacks->jsaddleSyncResult))(msg_str);
+  jstring next_jstr = (*env)->NewStringUTF(env,next_str);
+  free(next_str);
+  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLE", "processMessage.jsaddleSyncResult");
+  (*env)->ReleaseStringUTFChars(env, msg, msg_str);
+  return next_jstr;
+}
+
 JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_injectJavascript (JNIEnv *env) {
   jstring js_str = (*env)->NewStringUTF(env, hsCallbacks->jsaddleJsData);
   (*env)->CallVoidMethod(env, javaCallback, evaluateJSCallback, js_str);

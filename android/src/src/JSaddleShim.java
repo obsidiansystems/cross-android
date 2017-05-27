@@ -11,6 +11,7 @@ public class JSaddleShim {
   private Handler hnd;
   private native void startProcessing();
   private native void processMessage(String msg);
+  private native String processSyncMessage(String msg);
 
   public native void init();
   public native void deinit();
@@ -41,6 +42,12 @@ public class JSaddleShim {
       }
     });
     return true;
+  }
+
+  @JavascriptInterface
+  public String syncMessage(final String msg) {
+    Log.d("JSADDLE", msg);
+    return processSyncMessage(msg);
   }
 
   @JavascriptInterface
