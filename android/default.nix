@@ -59,8 +59,8 @@ in runCommand "android-app" {
       --subst-var-by PACKAGENAME "${packageName}" \
       --subst-var-by VERSIONCODE "${versionCode}" \
       --subst-var-by VERSIONNAME "${versionName}" \
-      --subst-var-by INTENTFILTERS "${intentFilters}" \
-      --subst-var-by PERMISSIONS "${permissions}"
+      --subst-var-by INTENTFILTERS '${intentFilters}' \
+      --subst-var-by PERMISSIONS '${permissions}'
 
     # copy the template project, and then put the src in the right place
     mkdir -p "$out/${packageSrcDir}"
