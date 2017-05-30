@@ -24,8 +24,12 @@ import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 
 public class MainActivity extends Activity {
     private JSaddleShim jsaddle;
@@ -62,19 +66,23 @@ public class MainActivity extends Activity {
 
         // allow video to play without user interaction
         wv.getSettings().setMediaPlaybackRequiresUserGesture(false);
-        // Obtain permission to store downloaded files.
-        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-        }
         // Set a handler for download links
         wv.setDownloadListener(new DownloadListener() {
-            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
-                Request request = new Request(Uri.parse(url));
-                request.allowScanningByMediaScanner();
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype)); 
-                DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                dm.enqueue(request);
+            public void onDownloadStart(final String url, String userAgent, final String contentDisposition, final String mimetype, long contentLength) {
+                // Obtain permission to store downloaded files.
+                if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissionsAndThen(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, new BiConsumer<String[], int[]>() {
+                            public void accept(String[] permissions, int[] grantResults) {
+                                Request request = new Request(Uri.parse(url));
+                                request.allowScanningByMediaScanner();
+                                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype));
+                                DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                                dm.enqueue(request);
+                            }
+                        }
+                    );
+                }
             }});
         // init an object mediating the interaction with JSaddle
         final Handler hnd = new Handler();
@@ -97,6 +105,20 @@ public class MainActivity extends Activity {
             wv.loadUrl(Uri.parse("file:///android_asset/index.html").buildUpon().encodedQuery(data.getEncodedQuery()).appendQueryParameter("href",data.toString()).toString());
         }
         appCallbacks.mainActivityOnCreate();
+    }
+
+    private void requestPermissionsAndThen(String[] permissions, BiConsumer<String[], int[]> callback) {
+        int code = nextPermissionRequestCode.getAndIncrement();
+        outstandingPermissionsRequests.put(code, callback);
+        requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, code);
+    }
+
+    private AtomicInteger nextPermissionRequestCode = new AtomicInteger(1);
+    private Map<Integer, BiConsumer<String[], int[]>> outstandingPermissionsRequests = new ConcurrentHashMap();
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        outstandingPermissionsRequests.remove(requestCode).accept(permissions, grantResults);
     }
 
     @Override
@@ -145,7 +167,7 @@ public class MainActivity extends Activity {
                 if (intent != null) {
                     if (fileUploadCallback != null) {
                         Uri[] dataUris = null;
-                        
+
                         try {
                             if (intent.getDataString() != null) {
                                 dataUris = new Uri[] { Uri.parse(intent.getDataString()) };
@@ -153,9 +175,9 @@ public class MainActivity extends Activity {
                             else {
 				if (intent.getClipData() != null) {
 				    final int numSelectedFiles = intent.getClipData().getItemCount();
-                                        
+
 				    dataUris = new Uri[numSelectedFiles];
-                                        
+
 				    for (int i = 0; i < numSelectedFiles; i++) {
 					dataUris[i] = intent.getClipData().getItemAt(i).getUri();
 				    }
@@ -163,7 +185,7 @@ public class MainActivity extends Activity {
                             }
                         }
                         catch (Exception ignored) { }
-                        
+
                         fileUploadCallback.onReceiveValue(dataUris);
                         fileUploadCallback = null;
                     }
@@ -195,7 +217,7 @@ public class MainActivity extends Activity {
 
 	    Intent i = new Intent(Intent.ACTION_GET_CONTENT);
 	    i.addCategory(Intent.CATEGORY_OPENABLE);
-	
+
 	    if (allowMultiple) {
 		i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 	    }
