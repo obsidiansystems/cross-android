@@ -16,6 +16,7 @@
 }:
 
 let inherit (nixpkgs) lib runCommand;
+    inherit (lib) escapeShellArg;
     appName = name;
     packageName = packagePrefix + "." + name;
     packageSrcDir = "src/main/java/" + builtins.replaceStrings ["."] ["/"] packageName;
@@ -26,10 +27,6 @@ let inherit (nixpkgs) lib runCommand;
     stuff = lib.attrValues appSOs;
     libiconvs = builtins.toString (builtins.map (s: s.libiconv) stuff);
     hsApps = builtins.toString (builtins.map (s: s.hsApp) stuff);
-    # Quote a string as a single bash argument, using single quotes
-    # The resulting string will already include starting and ending
-    # quotes, so it should *not* be further quoted.
-    bashSingleQuote = s: "'" + builtins.replaceStrings ["'"] ["'\\''"] s + "'";
 in runCommand "android-app" {
   inherit androidSdk; # frontend;
   src = ./src;
@@ -67,13 +64,13 @@ in runCommand "android-app" {
 
     cp $src/AndroidManifest.xml $out
     substituteInPlace $out/AndroidManifest.xml \
-      --subst-var-by PACKAGENAME ${bashSingleQuote packageName} \
-      --subst-var-by VERSIONCODE ${bashSingleQuote versionCode} \
-      --subst-var-by VERSIONNAME ${bashSingleQuote versionName} \
-      --subst-var-by INTENTFILTERS ${bashSingleQuote intentFilters} \
-      --subst-var-by SERVICES ${bashSingleQuote services} \
-      --subst-var-by PERMISSIONS ${bashSingleQuote permissions} \
-      --subst-var-by ICONRESOURCE ${bashSingleQuote iconResource}
+      --subst-var-by PACKAGENAME ${escapeShellArg packageName} \
+      --subst-var-by VERSIONCODE ${escapeShellArg versionCode} \
+      --subst-var-by VERSIONNAME ${escapeShellArg versionName} \
+      --subst-var-by INTENTFILTERS ${escapeShellArg intentFilters} \
+      --subst-var-by SERVICES ${escapeShellArg services} \
+      --subst-var-by PERMISSIONS ${escapeShellArg permissions} \
+      --subst-var-by ICONRESOURCE ${escapeShellArg iconResource}
 
     # copy the template project, and then put the src in the right place
     mkdir -p "$out/${packageSrcDir}"
