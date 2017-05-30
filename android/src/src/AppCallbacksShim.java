@@ -14,4 +14,5 @@ public class AppCallbacksShim {
   public native void mainActivityOnStop();
   public native void mainActivityOnDestroy();
   public native void mainActivityOnRestart();
+  public native void mainActivityOnNewIntent(String intent, String intentdata);
 }
