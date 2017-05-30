@@ -26,6 +26,10 @@ let inherit (nixpkgs) lib runCommand;
     stuff = lib.attrValues appSOs;
     libiconvs = builtins.toString (builtins.map (s: s.libiconv) stuff);
     hsApps = builtins.toString (builtins.map (s: s.hsApp) stuff);
+    # Quote a string as a single bash argument, using single quotes
+    # The resulting string will already include starting and ending
+    # quotes, so it should *not* be further quoted.
+    bashSingleQuote = s: "'" + builtins.replaceStrings ["'"] ["'\\''"] s + "'";
 in runCommand "android-app" {
   inherit androidSdk; # frontend;
   src = ./src;
@@ -63,13 +67,13 @@ in runCommand "android-app" {
 
     cp $src/AndroidManifest.xml $out
     substituteInPlace $out/AndroidManifest.xml \
-      --subst-var-by PACKAGENAME "${packageName}" \
-      --subst-var-by VERSIONCODE "${versionCode}" \
-      --subst-var-by VERSIONNAME "${versionName}" \
-      --subst-var-by INTENTFILTERS "${intentFilters}" \
-      --subst-var-by SERVICES "${services}" \
-      --subst-var-by PERMISSIONS "${permissions}" \
-      --subst-var-by ICONRESOURCE "${iconResource}"
+      --subst-var-by PACKAGENAME ${bashSingleQuote packageName} \
+      --subst-var-by VERSIONCODE ${bashSingleQuote versionCode} \
+      --subst-var-by VERSIONNAME ${bashSingleQuote versionName} \
+      --subst-var-by INTENTFILTERS ${bashSingleQuote intentFilters} \
+      --subst-var-by SERVICES ${bashSingleQuote services} \
+      --subst-var-by PERMISSIONS ${bashSingleQuote permissions} \
+      --subst-var-by ICONRESOURCE ${bashSingleQuote iconResource}
 
     # copy the template project, and then put the src in the right place
     mkdir -p "$out/${packageSrcDir}"
