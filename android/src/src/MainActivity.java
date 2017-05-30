@@ -69,19 +69,23 @@ public class MainActivity extends Activity {
         // Set a handler for download links
         wv.setDownloadListener(new DownloadListener() {
             public void onDownloadStart(final String url, String userAgent, final String contentDisposition, final String mimetype, long contentLength) {
+                BiConsumer<String[], int[]> doDownload = new BiConsumer<String[], int[]>() {
+                        // permissions and grantResults will be null in the case where no permission was needed
+                        public void accept(String[] permissions, int[] grantResults) {
+                            Request request = new Request(Uri.parse(url));
+                            request.allowScanningByMediaScanner();
+                            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype));
+                            DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                            dm.enqueue(request);
+                        }
+                    };
+
                 // Obtain permission to store downloaded files.
                 if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissionsAndThen(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, new BiConsumer<String[], int[]>() {
-                            public void accept(String[] permissions, int[] grantResults) {
-                                Request request = new Request(Uri.parse(url));
-                                request.allowScanningByMediaScanner();
-                                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype));
-                                DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                                dm.enqueue(request);
-                            }
-                        }
-                    );
+                    requestPermissionsAndThen(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, doDownload);
+                } else {
+                    doDownload.accept(null, null);
                 }
             }});
         // init an object mediating the interaction with JSaddle
