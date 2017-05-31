@@ -62,7 +62,6 @@ public class MainActivity extends Activity {
         ws.setAllowUniversalAccessFromFileURLs(true);
         wv.setWebContentsDebuggingEnabled(true);
         Intent intent = getIntent();
-        Uri data = intent.getData();
 
         // allow video to play without user interaction
         wv.getSettings().setMediaPlaybackRequiresUserGesture(false);
@@ -103,10 +102,9 @@ public class MainActivity extends Activity {
         Log.d(TAG, "###jsaddle");
         jsaddle.init();
         Log.d(TAG, "###loadhtml");
-        if (data == null) {
-            wv.loadUrl("file:///android_asset/index.html");
-        } else {
-            wv.loadUrl(Uri.parse("file:///android_asset/index.html").buildUpon().encodedQuery(data.getEncodedQuery()).appendQueryParameter("href",data.toString()).toString());
+        wv.loadUrl("file:///android_asset/index.html");
+        if (intent != null && intent.getData() != null && intent.getAction() != null) {
+          appCallbacks.mainActivityOnNewIntent(intent.getAction(), intent.getDataString());
         }
         appCallbacks.mainActivityOnCreate();
     }
@@ -160,6 +158,13 @@ public class MainActivity extends Activity {
     public void onRestart() {
       super.onRestart();
       appCallbacks.mainActivityOnRestart();
+    }
+    @Override
+    public void onNewIntent(Intent intent) {
+      super.onNewIntent(intent);
+      if (intent != null && intent.getData() != null && intent.getAction() != null) {
+        appCallbacks.mainActivityOnNewIntent(intent.getAction(), intent.getDataString());
+      }
     }
 
     // File uploads don't work out of the box.

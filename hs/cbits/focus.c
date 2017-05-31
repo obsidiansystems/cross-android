@@ -167,6 +167,17 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_AppCallbacksShim_mainActivity
   return;
 }
 
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_AppCallbacksShim_mainActivityOnNewIntent ( JNIEnv *env, jobject thisObj, jstring intent, jstring intentdata ) {
+  if(hsAppCallbacks.mainActivity_onNewIntent) {
+    const char *cstring_intent = (*env)->GetStringUTFChars(env, intent, 0);
+    const char *cstring_intentdata = (*env)->GetStringUTFChars(env, intentdata, 0);
+    hsAppCallbacks.mainActivity_onNewIntent(cstring_intent, cstring_intentdata);
+    (*env)->ReleaseStringUTFChars(env, intent, cstring_intent);
+    (*env)->ReleaseStringUTFChars(env, intentdata, cstring_intentdata);
+  }
+  return;
+}
+
 void evaluateJavascriptWrapper (const char* js) {
   JNIEnv *env;
   jint attachResult = (*jvm)->AttachCurrentThread(jvm, &env, NULL);
