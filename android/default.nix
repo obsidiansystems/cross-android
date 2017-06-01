@@ -36,7 +36,9 @@ in runCommand "android-app" {
 
     cp $src/build.gradle $out
     substituteInPlace $out/build.gradle \
-      --subst-var-by APPLICATION_ID "${packageName}"
+      --subst-var-by APPLICATION_ID "${packageName}" \
+      --subst-var-by VERSIONCODE "${versionCode}" \
+      --subst-var-by VERSIONNAME "${versionName}"
 
     ${lib.optionalString (googleServicesJson != null) "cp ${googleServicesJson} $out/google-services.json"}
 
