@@ -178,6 +178,18 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_AppCallbacksShim_mainActivity
   return;
 }
 
+JNIEXPORT void JNICALL Java_systems_obsidian_focus_LocalFirebaseMessagingService_handleNotification ( JNIEnv *env, jobject thisObj, jstring intent, jstring notificationdata) {
+  if(hsAppCallbacks.mainActivity_onNewIntent) {
+    const char *cstring_intent = (*env)->GetStringUTFChars(env, intent, 0);
+    const char *cstring_notificationdata = (*env)->GetStringUTFChars(env, notificationdata, 0);
+    hsAppCallbacks.mainActivity_onNewIntent(cstring_intent, cstring_notificationdata);
+    (*env)->ReleaseStringUTFChars(env, intent, cstring_intent);
+    (*env)->ReleaseStringUTFChars(env, notificationdata, cstring_notificationdata);
+  }
+  return;
+}
+
+
 void evaluateJavascriptWrapper (const char* js) {
   JNIEnv *env;
   jint attachResult = (*jvm)->AttachCurrentThread(jvm, &env, NULL);
