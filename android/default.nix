@@ -44,7 +44,9 @@ in runCommand "android-app" {
       --subst-var-by APPLICATION_ID "${packageName}" \
       --subst-var-by GOOGLE_SERVICES_CLASSPATH "${if googleServicesJson != null then "classpath 'com.google.gms:google-services:3.0.0'" else "" }" \
       --subst-var-by GOOGLE_SERVICES_PLUGIN "${if googleServicesJson != null then "apply plugin: 'com.google.gms.google-services'" else "" }" \
-      --subst-var-by ADDITIONAL_DEPENDENCIES "${additionalDependencies}"
+      --subst-var-by ADDITIONAL_DEPENDENCIES "${additionalDependencies}" \
+      --subst-var-by VERSIONCODE "${versionCode}" \
+      --subst-var-by VERSIONNAME "${versionName}"
 
     ${lib.optionalString (googleServicesJson != null) "cp ${googleServicesJson} $out/google-services.json"}
 
