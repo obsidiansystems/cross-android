@@ -1,8 +1,8 @@
 package systems.obsidian.focus;
 
 import android.util.Log;
-import com.google.firebase.messaging.FirebaseMessagingService
-import com.google.firebase.messaging.RemoteMessage
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
 
 public class LocalFirebaseMessagingService extends FirebaseMessagingService {
 
