@@ -12,7 +12,7 @@ public class LocalFirebaseMessagingService extends FirebaseMessagingService {
     if (remoteMessage.getData().size() > 0) {
       String custom = remoteMessage.getData().get("custom");
       if (custom != null) {
-        handleNotification("custom", custom);
+        handleNotification("custom-foreground", custom);
       }
     }
   }

@@ -13,7 +13,6 @@ import android.os.Handler;
 import android.os.Process;
 import android.os.SystemClock;
 import android.util.Log;
-import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
@@ -103,7 +102,9 @@ public class MainActivity extends Activity {
         jsaddle.init();
         Log.d(TAG, "###loadhtml");
         wv.loadUrl("file:///android_asset/index.html");
-        if (intent != null && intent.getData() != null && intent.getAction() != null) {
+        if (intent.getExtras() != null && intent.getStringExtra("custom") != null) {
+          appCallbacks.mainActivityOnNewIntent("custom-background", intent.getStringExtra("custom"));
+        } else if (intent != null && intent.getData() != null && intent.getAction() != null) {
           appCallbacks.mainActivityOnNewIntent(intent.getAction(), intent.getDataString());
         }
         appCallbacks.mainActivityOnCreate();
