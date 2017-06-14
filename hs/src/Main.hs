@@ -1,6 +1,6 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE OverloadedStrings #-}
-module App where
+module Main where
 
 import Control.Monad.IO.Class
 import Foreign.C.String (CString)
@@ -21,3 +21,5 @@ appMain evalJs appCallbacksPtr = do
     text "Hello World!"
   return res
 
+main :: IO ()
+main = return ()

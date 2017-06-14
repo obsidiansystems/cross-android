@@ -3,7 +3,9 @@
 , appName ? "app"
 }:
 
-rec {
+let packageName = androidPackagePrefix + "." + appName;
+    packageJNIName = builtins.replaceStrings ["."] ["_"] packageName;
+in rec {
   inherit (reflex-platform) nixpkgs;
   inherit (nixpkgs) lib androidenv;
   androidNdk = androidenv.androidndk;
@@ -12,11 +14,11 @@ rec {
   platforms = {
     "arm64-v8a" = {
       nixpkgsAndroid = reflex-platform.nixpkgsCross.android.arm64Impure;
-      androidHaskellPackagesBase = reflex-platform.ghcAndroidArm64;
+      androidHaskellPackages = reflex-platform.ghcAndroidArm64;
     };
     "armeabi-v7a" = {
       nixpkgsAndroid = reflex-platform.nixpkgsCross.android.armv7aImpure;
-      androidHaskellPackagesBase = reflex-platform.ghcAndroidArmv7a;
+      androidHaskellPackages = reflex-platform.ghcAndroidArmv7a;
     };
   };
 
@@ -26,14 +28,7 @@ rec {
     cat > "$out" <<EOF
     name: appName
     version: 0.1.0.0
-    -- synopsis:
-    -- description:
-    license: MIT
-    -- license-file: LICENSE
-    -- author:
-    -- maintainer:
-    -- copyright:
-    -- category:
+    license: AllRightsReserved
     build-type: Simple
     cabal-version: >=1.8
 
@@ -46,34 +41,20 @@ rec {
                    , transformers
       hs-source-dirs: src
       ghc-options: -Rghc-timing -shared -fPIC -threaded -no-hs-main -lHSrts_thr -lCffi -lm -llog
-      main-is: App.hs
+      main-is: Main.hs
       c-sources: cbits/focus.c
       include-dirs: cbits/include
       includes: jni.h
       install-includes: cbits/include/focus.h
-      exposed-modules: App
+      exposed-modules: Main
       cc-options: -shared -fPIC
       ld-options: -shared
     EOF
   '';
 
-  appSOs = lib.mapAttrs (abiVersion: { nixpkgsAndroid, androidHaskellPackagesBase }: rec {
+  appSOs = lib.mapAttrs (abiVersion: { nixpkgsAndroid, androidHaskellPackages }: rec {
     inherit (nixpkgsAndroid.buildPackages) patchelf;
     inherit (nixpkgsAndroid) libiconv;
-    androidHaskellPackages = androidHaskellPackagesBase.override {
-      overrides = self: super: {
-        mkDerivation = drv: super.mkDerivation (drv // {
-          dontStrip = true;
-          enableSharedExecutables = false;
-          configureFlags = (drv.configureFlags or []) ++ [
-            "--ghc-option=-fPIC"
-            "--ghc-option=-optc-fPIC"
-            "--ghc-option=-optc-shared"
-            "--ghc-option=-optl-shared"
-          ];
-        });
-      };
-    };
     hsApp = androidHaskellPackages.callPackage ({ mkDerivation, jsaddle, jsaddle-clib, reflex, reflex-dom-core }:
       mkDerivation (rec {
         pname = "app";
@@ -83,6 +64,7 @@ rec {
           buildCommand = ''
             mkdir "$out"
             cp -r --no-preserve=mode "${appSrc}"/* "$out"/
+            sed -i 's|systems_obsidian_focus|'"${packageJNIName}"'|' "$out/cbits/"*"."{c,h}
           '';
         } "";
         buildDepends = [ jsaddle jsaddle-clib reflex reflex-dom-core ];
@@ -110,7 +92,8 @@ rec {
     inherit appSOs;
     packagePrefix = androidPackagePrefix;
     assets = ./android/assets;
-    res    = ./android/res;
+    res = ./android/res;
+    iconResource = "@drawable/ic_launcher";
   };
 
   androidApp = nixpkgs.androidenv.buildGradleApp {
@@ -121,11 +104,13 @@ rec {
     useExtraSupportLibs = true;
     useNDK = true;
     release = true;
-    inherit abiVersions;
     keyStore = ./keystore;
     keyAlias = "focus";
     keyStorePassword = "password";
     keyAliasPassword = "password";
+    mavenDeps = import ./androidDeps.nix;
+    gradleTask = "assemble";
+    acceptAndroidSdkLicenses = true;
   };
 
   androidEmulate = nixpkgs.androidenv.emulateApp {

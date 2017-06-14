@@ -78,7 +78,10 @@ in runCommand "android-app" {
     mkdir -p "$out/${packageSrcDir}"
     cp -r --no-preserve=mode "$src/src/." "$out/${packageSrcDir}"
 
-    ${if includeFirebase then "" else "rm $out/${packageSrcDir}/LocalFirebaseInstanceIDService.java"}
+    ${if includeFirebase then "" else ''
+      rm $out/${packageSrcDir}/LocalFirebaseInstanceIDService.java
+      rm $out/${packageSrcDir}/LocalFirebaseMessagingService.java
+    ''}
     sed -i 's|package systems.obsidian.focus;|package '"${packageName}"\;'|' "$out/${packageSrcDir}/"*".java"
 
     substituteInPlace "$out/${packageSrcDir}/MainActivity.java" \

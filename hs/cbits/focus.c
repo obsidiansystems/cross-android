@@ -62,7 +62,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad ( JavaVM *vm, void *reserved ) {
   static char **pargv = argv;
   hs_init_with_rtsopts(&argc, &pargv);
 
-  hs_add_root (__stginit_Mobile);
+  hs_add_root (__stginit_Main);
 
   return JNI_VERSION_1_6;
 }

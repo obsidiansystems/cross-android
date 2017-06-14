@@ -2,7 +2,7 @@
 #define _INCLUDE_FOCUS_H_
 #include "jsaddle.h"
 
-void __stginit_Mobile (void);
+void __stginit_Main (void);
 
 native_callbacks* appMain (void (* evaluateJs) (const char*), app_callbacks* hsAppCallbacks);
 
