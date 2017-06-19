@@ -6,14 +6,17 @@
 #include <stdio.h>
 #include <android/log.h>
 #include "HsFFI.h"
+#include "Rts.h"
 
 #include "focus.h"
 
+extern StgClosure ZCMain_main_closure;
 static native_callbacks* hsCallbacks = NULL;
 static JavaVM* jvm = NULL;
 static jobject javaCallback = NULL;
 static jmethodID evaluateJSCallback = NULL;
-static app_callbacks hsAppCallbacks = { NULL };
+static jmethodID mainStartedCallback = NULL;
+static app_callbacks hsAppCallbacks = { NULL }; //TODO: Expose this
 
 static int pfd[2];
 static pthread_t thr;
@@ -24,7 +27,6 @@ static void *thread_func(void*);
 int start_logger(const char *app_name) {
     tag = app_name;
 
-    /* make stdout line-buffered and stderr unbuffered */
     setvbuf(stdout, 0, _IOLBF, 0);
     setvbuf(stderr, 0, _IOLBF, 0);
 
@@ -34,8 +36,10 @@ int start_logger(const char *app_name) {
     dup2(pfd[1], 2);
 
     /* spawn the logging thread */
-    if(pthread_create(&thr, 0, thread_func, 0) == -1)
+    if(pthread_create(&thr, 0, thread_func, 0) == -1) {
+        __android_log_write(ANDROID_LOG_DEBUG, tag, "Could not start logger");
         return -1;
+    }
     pthread_detach(thr);
     return 0;
 }
@@ -44,6 +48,8 @@ void *thread_func(void* unused)
 {
     ssize_t rdsz;
     char buf[256];
+
+    __android_log_write(ANDROID_LOG_DEBUG, tag, "Logger running");
     while((rdsz = read(pfd[0], buf, sizeof buf - 1)) > 0) {
         if(buf[rdsz - 1] == '\n') --rdsz;
         buf[rdsz] = 0;  /* add null-terminator */
@@ -55,14 +61,7 @@ void *thread_func(void* unused)
 JNIEXPORT jint JNICALL JNI_OnLoad ( JavaVM *vm, void *reserved ) {
   jvm = vm;
 
-  start_logger("JSADDLEC");
-
-  static int argc = 5;
-  static char *argv[] = {"jsaddle", "+RTS", "-N2", "-I0", "-RTS"};
-  static char **pargv = argv;
-  hs_init_with_rtsopts(&argc, &pargv);
-
-  hs_add_root (__stginit_Main);
+  start_logger("JSADDLEC"); //TODO: Use the app name
 
   return JNI_VERSION_1_6;
 }
@@ -83,7 +82,6 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_LocalFirebaseInstanceIDServic
 JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_processMessage (JNIEnv *env, jobject thisObj, jstring msg) {
   const char *msg_str = (*env)->GetStringUTFChars(env, msg, NULL);
   (*(hsCallbacks->jsaddleResult))(msg_str);
-  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLE", "processMessage.jsaddleResult");
   (*env)->ReleaseStringUTFChars(env, msg, msg_str);
   return;
 }
@@ -93,7 +91,6 @@ JNIEXPORT jstring JNICALL Java_systems_obsidian_focus_JSaddleShim_processSyncMes
   char *next_str = (*(hsCallbacks->jsaddleSyncResult))(msg_str);
   jstring next_jstr = (*env)->NewStringUTF(env,next_str);
   free(next_str);
-  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLE", "processMessage.jsaddleSyncResult");
   (*env)->ReleaseStringUTFChars(env, msg, msg_str);
   return next_jstr;
 }
@@ -109,7 +106,15 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_JSaddleShim_init (JNIEnv *env
   javaCallback = (*env)->NewGlobalRef(env, jsaddleObj);
   jclass cls = (*env)->GetObjectClass(env, javaCallback);
   evaluateJSCallback = (*env)->GetMethodID(env, cls, "evaluateJavascript", "(Ljava/lang/String;)V");
-  hsCallbacks = appMain(&evaluateJavascriptWrapper, &hsAppCallbacks);
+  mainStartedCallback = (*env)->GetMethodID(env, cls, "mainStarted", "()V");
+
+  static int argc = 5;
+  static char *argv[] = {"jsaddle", "+RTS", "-N2", "-I0", "-RTS"};
+
+  RtsConfig rts_opts = defaultRtsConfig;
+  rts_opts.rts_opts_enabled = RtsOptsAll;
+  hs_main(argc, argv, &ZCMain_main_closure, rts_opts);
+
   return;
 }
 
@@ -190,15 +195,23 @@ JNIEXPORT void JNICALL Java_systems_obsidian_focus_LocalFirebaseMessagingService
 }
 
 
-void evaluateJavascriptWrapper (const char* js) {
+void evaluateJavascript (const char* js) {
   JNIEnv *env;
   jint attachResult = (*jvm)->AttachCurrentThread(jvm, &env, NULL);
   assert (attachResult == JNI_OK);
   jstring js_str = (*env)->NewStringUTF(env, js);
   (*env)->CallVoidMethod(env, javaCallback, evaluateJSCallback, js_str);
-  __android_log_write(ANDROID_LOG_DEBUG, "JSADDLEDEBUG", "evaluateJavascriptWrapper.evaluateJSCallback");
   (*env)->DeleteLocalRef(env, js_str);
-  jint detachResult = (*jvm) -> DetachCurrentThread(jvm);
-  assert (detachResult == JNI_OK);
+  //  jint detachResult = (*jvm) -> DetachCurrentThread(jvm); //TODO: I think this is unnecessary
+  //  assert (detachResult == JNI_OK);
   return;
+}
+
+void mainStarted(native_callbacks* newNativeCallbacks) {
+  hsCallbacks = newNativeCallbacks;
+
+  JNIEnv *env;
+  jint attachResult = (*jvm)->AttachCurrentThread(jvm, &env, NULL);
+  assert(attachResult == JNI_OK);
+  (*env)->CallVoidMethod(env, javaCallback, mainStartedCallback);
 }

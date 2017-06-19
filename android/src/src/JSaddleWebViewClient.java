@@ -17,7 +17,7 @@ public class JSaddleWebViewClient extends WebViewClient {
 
   @Override
   public boolean shouldOverrideUrlLoading(WebView view, String url) {
-    if (Uri.parse(url).getHost().endsWith("obsidian.systems")) {
+    if (Uri.parse(url).getHost().endsWith("obsidian.systems")) { //TODO: Doesn't seem right
       return false;
     }
 
