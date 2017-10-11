@@ -98,9 +98,7 @@ public class MainActivity extends Activity {
         // register jsaddle javascript interface
         wv.addJavascriptInterface(jsaddle, "jsaddle");
         // tell C about the shim so that it can spin up Haskell and connect the two
-        Log.d(TAG, "###jsaddle");
         jsaddle.init();
-        Log.d(TAG, "###loadhtml");
         wv.loadUrl("file:///android_asset/index.html");
         if (intent.getExtras() != null && intent.getStringExtra("custom") != null) {
           appCallbacks.mainActivityOnNewIntent("custom-background", intent.getStringExtra("custom"));
@@ -136,20 +134,17 @@ public class MainActivity extends Activity {
     }
     @Override
     public void onPause() {
-        Log.d(TAG, "!!!PAUSE");
         super.onPause();
         appCallbacks.mainActivityOnPause();
     }
     @Override
     public void onStop() {
-        Log.d(TAG, "!!!STOP");
         CookieManager.getInstance().flush();
         super.onStop();
         appCallbacks.mainActivityOnStop();
     }
     @Override
     public void onDestroy() {
-        Log.d(TAG, "!!!DESTROY");
         // jsaddle.deinit(); crashes because we're not deinit'ing native threads correctly
         super.onDestroy();
         appCallbacks.mainActivityOnDestroy();
