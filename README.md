@@ -1,3 +1,8 @@
+## This repository is deprecated
+
+
+### Old README
+
 Build all the way to android:
 
 nix-build -A androidApp
