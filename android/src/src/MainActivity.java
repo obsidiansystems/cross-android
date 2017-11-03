@@ -59,7 +59,9 @@ public class MainActivity extends Activity {
         ws.setJavaScriptEnabled(true);
         ws.setAllowFileAccessFromFileURLs(true); //Maybe you don't need this rule
         ws.setAllowUniversalAccessFromFileURLs(true);
+        ws.setDomStorageEnabled(true);
         wv.setWebContentsDebuggingEnabled(true);
+
         Intent intent = getIntent();
 
         // allow video to play without user interaction
