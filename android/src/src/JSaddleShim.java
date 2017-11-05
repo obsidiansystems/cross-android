@@ -26,7 +26,6 @@ public class JSaddleShim {
     hnd.post(new Runnable() {
       @Override
       public void run() {
-        Log.d("JSADDLE", js);
         wv.evaluateJavascript (js, null);
       }
     });
@@ -37,7 +36,6 @@ public class JSaddleShim {
     hnd.post(new Runnable() {
       @Override
       public void run() {
-        Log.d("JSADDLE", msg);
         processMessage(msg);
       }
     });
@@ -46,7 +44,6 @@ public class JSaddleShim {
 
   @JavascriptInterface
   public String syncMessage(final String msg) {
-    Log.d("JSADDLE", msg);
     return processSyncMessage(msg);
   }
 
@@ -55,7 +52,6 @@ public class JSaddleShim {
     hnd.post(new Runnable() {
       @Override
       public void run() {
-        Log.d("JSADDLE", "###startProcessing");
         startProcessing();
       }
     });
