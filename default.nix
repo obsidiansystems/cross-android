@@ -99,7 +99,7 @@ in rec {
   androidApp = nixpkgs.androidenv.buildGradleApp {
     name = appName;
     src = androidSrc;
-    platformVersions = [ "25" ];
+    platformVersions = [ "26" ];
     useGoogleAPIs = true;
     useExtraSupportLibs = true;
     useNDK = true;
